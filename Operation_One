@@ -172,6 +172,11 @@ do
             end
 
             Connection = RunService.RenderStepped:Connect(function()
+                if not ESP.Enabled then
+                    HideESP()
+                    return
+                end
+                
                 if not CharacterModel or not CharacterModel.Parent then
                     CleanupESP()
                     return
