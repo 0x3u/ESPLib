@@ -52,6 +52,12 @@ local ESP = {
                 RGB = Color3.fromRGB(255, 255, 255),
             },
         };
+        TeamCheck = {
+            Enabled = true,
+            HideTeammates = true,
+            TeammateColor = Color3.fromRGB(0, 170, 255),  -- Blue for teammates
+            EnemyColor = Color3.fromRGB(255, 50, 50),     -- Red for enemies
+        };
     };
 }
 
@@ -60,10 +66,52 @@ local Cam = Workspace.CurrentCamera
 
 local ESPCounter = 0
 
+local function hasTeamHighlight(model)
+    if not model then return false end
+    
+    -- Check if the model has a Highlight object (likely indicating team membership)
+    local existingHighlight = model:FindFirstChildOfClass("Highlight")
+    if existingHighlight then
+        return true
+    end
+    
+    -- Alternative: Check for specific highlight names that might indicate teams
+    local possibleTeamHighlightNames = {"TeamHighlight", "AllyHighlight", "FriendlyHighlight", "TeammateHighlight"}
+    for _, highlightName in ipairs(possibleTeamHighlightNames) do
+        local highlight = model:FindFirstChild(highlightName)
+        if highlight and highlight:IsA("Highlight") then
+            return true
+        end
+    end
+    
+    return false
+end
+
 local function isTeammate(model)
     if not model then return false end
+    
+    -- Check if it's the local viewmodel
     if model.Name == "LocalViewmodel" then return true end
+    
+    -- Team check via Highlight object
+    if ESP.Drawing.TeamCheck.Enabled then
+        local isTeammate = hasTeamHighlight(model)
+        if ESP.Drawing.TeamCheck.HideTeammates and isTeammate then
+            return true
+        end
+    end
+    
     return false
+end
+
+local function getTeamColor(model)
+    if not model then return ESP.Drawing.TeamCheck.EnemyColor end
+    
+    if hasTeamHighlight(model) then
+        return ESP.Drawing.TeamCheck.TeammateColor
+    else
+        return ESP.Drawing.TeamCheck.EnemyColor
+    end
 end
 
 local function isValidPlayer(model)
@@ -223,10 +271,20 @@ do
                     end
 
                     do
+                        local teamColor = getTeamColor(CharacterModel)
+                        
                         Chams.Adornee = CharacterModel
                         Chams.Enabled = ESP.Drawing.Chams.Enabled
-                        Chams.FillColor = ESP.Drawing.Chams.FillRGB
-                        Chams.OutlineColor = ESP.Drawing.Chams.OutlineRGB
+                        
+                        -- Apply team colors if team check is enabled
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            Chams.FillColor = teamColor
+                            Chams.OutlineColor = teamColor
+                        else
+                            Chams.FillColor = ESP.Drawing.Chams.FillRGB
+                            Chams.OutlineColor = ESP.Drawing.Chams.OutlineRGB
+                        end
+                        
                         if ESP.Drawing.Chams.Thermal then
                             local breathe_effect = math.atan(math.sin(tick() * 2)) * 2 / math.pi
                             Chams.FillTransparency = (ESP.Drawing.Chams.Fill_Transparency / 100) * (1 - (breathe_effect * 0.1))
@@ -236,43 +294,69 @@ do
                     end
 
                     do
+                        local teamColor = getTeamColor(CharacterModel)
+                        
                         LeftTop.Visible = ESP.Drawing.Boxes.Corner.Enabled
                         LeftTop.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
                         LeftTop.Size = UDim2.new(0, w / 5, 0, 1)
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            LeftTop.BackgroundColor3 = teamColor
+                        end
                         
                         LeftSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
                         LeftSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
                         LeftSide.Size = UDim2.new(0, 1, 0, h / 5)
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            LeftSide.BackgroundColor3 = teamColor
+                        end
                         
                         BottomSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
                         BottomSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset)
                         BottomSide.Size = UDim2.new(0, 1, 0, h / 5)
                         BottomSide.AnchorPoint = Vector2.new(0, 5)
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            BottomSide.BackgroundColor3 = teamColor
+                        end
                         
                         BottomDown.Visible = ESP.Drawing.Boxes.Corner.Enabled
                         BottomDown.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset)
                         BottomDown.Size = UDim2.new(0, w / 5, 0, 1)
                         BottomDown.AnchorPoint = Vector2.new(0, 1)
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            BottomDown.BackgroundColor3 = teamColor
+                        end
                         
                         RightTop.Visible = ESP.Drawing.Boxes.Corner.Enabled
                         RightTop.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y - h / 2 + verticalOffset)
                         RightTop.Size = UDim2.new(0, w / 5, 0, 1)
                         RightTop.AnchorPoint = Vector2.new(1, 0)
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            RightTop.BackgroundColor3 = teamColor
+                        end
                         
                         RightSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
                         RightSide.Position = UDim2.new(0, Pos.X + w / 2 - 1, 0, Pos.Y - h / 2 + verticalOffset)
                         RightSide.Size = UDim2.new(0, 1, 0, h / 5)
                         RightSide.AnchorPoint = Vector2.new(0, 0)
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            RightSide.BackgroundColor3 = teamColor
+                        end
                         
                         BottomRightSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
                         BottomRightSide.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 2 + verticalOffset)
                         BottomRightSide.Size = UDim2.new(0, 1, 0, h / 5)
                         BottomRightSide.AnchorPoint = Vector2.new(1, 1)
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            BottomRightSide.BackgroundColor3 = teamColor
+                        end
                         
                         BottomRightDown.Visible = ESP.Drawing.Boxes.Corner.Enabled
                         BottomRightDown.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 2 + verticalOffset)
                         BottomRightDown.Size = UDim2.new(0, w / 5, 0, 1)
-                        BottomRightDown.AnchorPoint = Vector2.new(1, 1)                                                            
+                        BottomRightDown.AnchorPoint = Vector2.new(1, 1)
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            BottomRightDown.BackgroundColor3 = teamColor
+                        end                                                            
                     end
 
                     do
@@ -311,7 +395,18 @@ do
                             nameText = string.format('%s [%d]', nameText, math.floor(Dist))
                         end
                         
-                        Name.Text = string.format('(<font color="rgb(%d, %d, %d)">T</font>) %s', 255, 255, 255, nameText)
+                        -- Apply team color to name
+                        local teamColor = getTeamColor(CharacterModel)
+                        local r, g, b = math.floor(teamColor.R * 255), math.floor(teamColor.G * 255), math.floor(teamColor.B * 255)
+                        
+                        if ESP.Drawing.TeamCheck.Enabled then
+                            Name.TextColor3 = teamColor
+                            Name.Text = string.format('(<font color="rgb(%d, %d, %d)">T</font>) %s', r, g, b, nameText)
+                        else
+                            Name.TextColor3 = ESP.Drawing.Names.RGB
+                            Name.Text = string.format('(<font color="rgb(%d, %d, %d)">T</font>) %s', 255, 255, 255, nameText)
+                        end
+                        
                         Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 + verticalOffset)
                     end
                 else
