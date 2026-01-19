@@ -67,6 +67,7 @@ local Cam = Workspace.CurrentCamera
 
 local ESPCounter = 0
 local ActiveESPs = {}  -- Moved to global scope so we can access it
+local ScreenGui = nil  -- Declare ScreenGui globally
 
 local function hasTeamHighlight(model)
     if not model then return false end
@@ -362,56 +363,55 @@ local function CreateESP(CharacterModel)
     task.spawn(Updater)
 end
 
-do
-    if CoreGui:FindFirstChild("ESPHolder") then
-        CoreGui["ESPHolder"]:Destroy()
+-- Initialize the ESP
+if CoreGui:FindFirstChild("ESPHolder") then
+    CoreGui["ESPHolder"]:Destroy()
+end
+
+ScreenGui = Functions:Create("ScreenGui", {Parent = CoreGui, Name = "ESPHolder"})
+
+local function MonitorViewmodels()
+    local viewmodels = Workspace:FindFirstChild("Viewmodels")
+    if not viewmodels then
+        warn("Viewmodels folder not found in Workspace")
+        return
     end
 
-    local ScreenGui = Functions:Create("ScreenGui", {Parent = CoreGui, Name = "ESPHolder"})
-
-    local function MonitorViewmodels()
-        local viewmodels = Workspace:FindFirstChild("Viewmodels")
-        if not viewmodels then
-            warn("Viewmodels folder not found in Workspace")
-            return
+    for _, v in pairs(viewmodels:GetChildren()) do
+        if v:IsA("Model") then
+            task.spawn(function()
+                task.wait(0.1)
+                CreateESP(v)
+            end)
         end
+    end
 
-        for _, v in pairs(viewmodels:GetChildren()) do
-            if v:IsA("Model") then
-                task.spawn(function()
-                    task.wait(0.1)
-                    CreateESP(v)
-                end)
-            end
+    viewmodels.ChildAdded:Connect(function(v)
+        if v:IsA("Model") then
+            task.spawn(function()
+                task.wait(0.2)
+                CreateESP(v)
+            end)
         end
+    end)
+    
+    viewmodels.ChildRemoved:Connect(function(v)
+        if ActiveESPs[v] then
+            ActiveESPs[v]:Destroy()
+            ActiveESPs[v] = nil
+        end
+    end)
+end
 
-        viewmodels.ChildAdded:Connect(function(v)
-            if v:IsA("Model") then
-                task.spawn(function()
-                    task.wait(0.2)
-                    CreateESP(v)
-                end)
-            end
-        end)
-        
-        viewmodels.ChildRemoved:Connect(function(v)
-            if ActiveESPs[v] then
-                ActiveESPs[v]:Destroy()
-                ActiveESPs[v] = nil
-            end
-        end)
-    end
-    
-    MonitorViewmodels()
-    
-    -- EXPOSE FUNCTIONS TO THE ESP TABLE
-    ESP.RefreshESPs = function()
-        Functions:RefreshESPs()
-    end
-    
-    ESP.CleanAllESPs = function()
-        Functions:CleanAllESPs()
-    end
+MonitorViewmodels()
+
+-- EXPOSE FUNCTIONS TO THE ESP TABLE
+ESP.RefreshESPs = function()
+    Functions:RefreshESPs()
+end
+
+ESP.CleanAllESPs = function()
+    Functions:CleanAllESPs()
 end
 
 return ESP
