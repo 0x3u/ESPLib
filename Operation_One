@@ -36,8 +36,12 @@ local ESP = {
         Boxes = {
             Animate = true,
             RotationSpeed = 300,
-            Gradient = false, GradientRGB1 = Color3.fromRGB(243, 116, 116), GradientRGB2 = Color3.fromRGB(0, 0, 0), 
-            GradientFill = true, GradientFillRGB1 = Color3.fromRGB(243, 116, 116), GradientFillRGB2 = Color3.fromRGB(0, 0, 0), 
+            Gradient = false, 
+            GradientRGB1 = Color3.fromRGB(243, 116, 116), 
+            GradientRGB2 = Color3.fromRGB(0, 0, 0), 
+            GradientFill = true, 
+            GradientFillRGB1 = Color3.fromRGB(243, 116, 116), 
+            GradientFillRGB2 = Color3.fromRGB(0, 0, 0), 
             Filled = {
                 Enabled = true,
                 Transparency = 0.75,
@@ -51,14 +55,14 @@ local ESP = {
                 Enabled = true,
                 RGB = Color3.fromRGB(255, 255, 255),
             },
-        };
-        TeamCheck = {
+        },  -- Changed semicolon to comma here
+        TeamCheck = {  -- Now this is properly inside Drawing
             Enabled = true,
             HideTeammates = true,
-            TeammateColor = Color3.fromRGB(0, 170, 255),  -- Blue for teammates
-            EnemyColor = Color3.fromRGB(255, 50, 50),     -- Red for enemies
-        };
-    };
+            TeammateColor = Color3.fromRGB(0, 170, 255),
+            EnemyColor = Color3.fromRGB(255, 50, 50),
+        },
+    },
 }
 
 local lplayer = Players.LocalPlayer
