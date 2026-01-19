@@ -161,10 +161,6 @@ do
         if not CharacterModel then return end
         if not isValidPlayer(CharacterModel) then return end
         
-        if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
-            return
-        end
-        
         if ActiveESPs[CharacterModel] then
             return
         end
@@ -235,14 +231,15 @@ do
                     CleanupESP()
                     return
                 end
-                
-                if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
-                    HideESP()
-                    return
-                end
 
                 local torso = CharacterModel:FindFirstChild("torso")
                 if not torso or torso.Transparency >= 1 then
+                    HideESP()
+                    return
+                end
+                
+                -- Team check moved HERE, so it checks every frame
+                if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
                     HideESP()
                     return
                 end
