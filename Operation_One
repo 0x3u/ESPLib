@@ -60,6 +60,11 @@ local ESP = {
                 RGB = Color3.fromRGB(255, 255, 255),
             },
         },
+        Skeleton = {
+            Enabled = false,
+            RGB = Color3.fromRGB(255, 255, 255),
+            Thickness = 1,
+        },
         TeamCheck = {
             Enabled = false,
         },
@@ -71,6 +76,30 @@ local Cam = Workspace.CurrentCamera
 
 local ESPCounter = 0
 local ActiveESPs = {}
+local ActiveSkeletons = {}
+
+-- Skeleton connections table for cleanup
+local SkeletonConnections = {}
+
+-- Bone connection mapping for skeleton ESP
+local BONE_CONNECTIONS = {
+    -- Torso connections
+    {"torso", "shoulder1"},
+    {"torso", "shoulder2"},
+    {"torso", "hip1"},
+    {"torso", "hip2"},
+    
+    -- Head connection
+    {"torso", "head"},
+    
+    -- Arm connections
+    {"shoulder1", "arm1"},
+    {"shoulder2", "arm2"},
+    
+    -- Leg connections
+    {"hip1", "leg1"},
+    {"hip2", "leg2"},
+}
 
 local function hasTeamHighlight(model)
     if not model then return false end
@@ -123,6 +152,8 @@ do
         elseif element:IsA("Highlight") then
             element.FillTransparency = 1 - transparency
             element.OutlineTransparency = 1 - transparency
+        elseif element:IsA("Line") then
+            element.Transparency = 1 - transparency
         end;
     end  
     
@@ -133,6 +164,28 @@ do
             end
         end
         ActiveESPs = {}
+        
+        -- Clean up all skeletons
+        self:CleanAllSkeletons()
+    end
+    
+    function Functions:CleanAllSkeletons()
+        for model, skeletonData in pairs(ActiveSkeletons) do
+            if skeletonData then
+                for _, line in pairs(skeletonData.lines) do
+                    if line and line.Remove then
+                        line:Remove()
+                    end
+                end
+                if skeletonData.connection then
+                    skeletonData.connection:Disconnect()
+                end
+            end
+        end
+        ActiveSkeletons = {}
+        
+        -- Clear connections table
+        SkeletonConnections = {}
     end
     
     function Functions:RefreshESPs()
@@ -147,6 +200,162 @@ do
                 end)
             end
         end
+    end
+    
+    function Functions:CreateSkeleton(character)
+        if not character or not isValidPlayer(character) then
+            return nil
+        end
+        
+        -- Check if skeleton already exists
+        if ActiveSkeletons[character] then
+            return ActiveSkeletons[character]
+        end
+        
+        -- Collect all required bones
+        local bones = {}
+        local boneNames = {"arm1", "arm2", "head", "hip1", "hip2", "leg1", "leg2", "shoulder1", "shoulder2", "torso"}
+        
+        for _, boneName in ipairs(boneNames) do
+            local bone = character:FindFirstChild(boneName)
+            if bone and bone:IsA("BasePart") then
+                bones[boneName] = bone
+            end
+        end
+        
+        -- If missing essential bones, don't create skeleton
+        if not bones["torso"] then
+            return nil
+        end
+        
+        -- Create skeleton lines
+        local skeletonLines = {}
+        
+        for _, connection in ipairs(BONE_CONNECTIONS) do
+            local bone1Name, bone2Name = connection[1], connection[2]
+            local bone1, bone2 = bones[bone1Name], bones[bone2Name]
+            
+            if bone1 and bone2 then
+                local line = Drawing.new("Line")
+                line.Visible = false
+                line.Color = ESP.Drawing.Skeleton.RGB
+                line.Thickness = ESP.Drawing.Skeleton.Thickness
+                line.Transparency = 1
+                table.insert(skeletonLines, line)
+            end
+        end
+        
+        -- Create skeleton data object
+        local skeletonData = {
+            lines = skeletonLines,
+            bones = bones,
+            character = character
+        }
+        
+        ActiveSkeletons[character] = skeletonData
+        
+        -- Create update function for this skeleton
+        local function UpdateSkeleton()
+            if not ESP.Enabled or not ESP.Drawing.Skeleton.Enabled then
+                for _, line in ipairs(skeletonLines) do
+                    line.Visible = false
+                end
+                return
+            end
+            
+            -- Team check
+            if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(character) then
+                for _, line in ipairs(skeletonLines) do
+                    line.Visible = false
+                end
+                return
+            end
+            
+            local torso = bones["torso"]
+            if not torso or torso.Transparency >= 1 then
+                for _, line in ipairs(skeletonLines) do
+                    line.Visible = false
+                end
+                return
+            end
+            
+            local camera = Workspace.CurrentCamera
+            local distance = (camera.CFrame.Position - torso.Position).Magnitude / 3.5714285714
+            
+            if distance > ESP.MaxDistance then
+                for _, line in ipairs(skeletonLines) do
+                    line.Visible = false
+                end
+                return
+            end
+            
+            -- Update skeleton lines
+            local lineIndex = 1
+            for _, connection in ipairs(BONE_CONNECTIONS) do
+                local bone1Name, bone2Name = connection[1], connection[2]
+                local bone1, bone2 = bones[bone1Name], bones[bone2Name]
+                
+                if bone1 and bone2 and lineIndex <= #skeletonLines then
+                    local line = skeletonLines[lineIndex]
+                    
+                    -- Get screen positions
+                    local pos1, onScreen1 = camera:WorldToViewportPoint(bone1.Position)
+                    local pos2, onScreen2 = camera:WorldToViewportPoint(bone2.Position)
+                    
+                    if onScreen1 and onScreen2 then
+                        line.From = Vector2.new(pos1.X, pos1.Y)
+                        line.To = Vector2.new(pos2.X, pos2.Y)
+                        line.Visible = true
+                        line.Color = ESP.Drawing.Skeleton.RGB
+                        line.Thickness = ESP.Drawing.Skeleton.Thickness
+                        
+                        -- Apply fade out
+                        if ESP.FadeOut.OnDistance then
+                            Functions:FadeOutOnDist(line, distance)
+                        end
+                    else
+                        line.Visible = false
+                    end
+                    
+                    lineIndex = lineIndex + 1
+                end
+            end
+            
+            -- Hide any extra lines
+            for i = lineIndex, #skeletonLines do
+                skeletonLines[i].Visible = false
+            end
+        end
+        
+        -- Store connection and start updating
+        local connection = RunService.RenderStepped:Connect(UpdateSkeleton)
+        skeletonData.connection = connection
+        SkeletonConnections[character] = connection
+        
+        return skeletonData
+    end
+    
+    function Functions:RemoveSkeleton(character)
+        local skeletonData = ActiveSkeletons[character]
+        if not skeletonData then return end
+        
+        -- Remove lines
+        for _, line in ipairs(skeletonData.lines) do
+            if line and line.Remove then
+                line:Remove()
+            end
+        end
+        
+        -- Disconnect connection
+        if skeletonData.connection then
+            skeletonData.connection:Disconnect()
+        end
+        
+        -- Remove from connections table
+        SkeletonConnections[character] = nil
+        
+        -- Remove from active skeletons
+        ActiveSkeletons[character] = nil
     end
 end
 
@@ -214,6 +423,7 @@ do
                 if Connection then Connection:Disconnect() end
                 if ESPFolder then ESPFolder:Destroy() end
                 ActiveESPs[CharacterModel] = nil
+                Functions:RemoveSkeleton(CharacterModel)
             end
 
             Connection = RunService.RenderStepped:Connect(function()
@@ -238,7 +448,7 @@ do
                     return
                 end
                 
-                -- Team check moved HERE, so it checks every frame
+                -- Team check
                 if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
                     HideESP()
                     return
@@ -377,8 +587,16 @@ do
                             end
                         end
                     end
+                    
+                    -- Create/Update Skeleton ESP
+                    if ESP.Drawing.Skeleton.Enabled then
+                        Functions:CreateSkeleton(CharacterModel)
+                    else
+                        Functions:RemoveSkeleton(CharacterModel)
+                    end
                 else
                     HideESP();
+                    Functions:RemoveSkeleton(CharacterModel)
                 end
             end)
         end
@@ -416,6 +634,7 @@ do
                 ActiveESPs[v]:Destroy()
                 ActiveESPs[v] = nil
             end
+            Functions:RemoveSkeleton(v)
         end)
     end
     
@@ -427,6 +646,23 @@ do
     
     ESP.CleanAllESPs = function()
         Functions:CleanAllESPs()
+    end
+    
+    ESP.ToggleSkeleton = function(enabled)
+        ESP.Drawing.Skeleton.Enabled = enabled
+        if not enabled then
+            Functions:CleanAllSkeletons()
+        else
+            -- Refresh to create skeletons for existing players
+            local viewmodels = Workspace:FindFirstChild("Viewmodels")
+            if viewmodels then
+                for _, model in pairs(viewmodels:GetChildren()) do
+                    if model:IsA("Model") and isValidPlayer(model) then
+                        Functions:CreateSkeleton(model)
+                    end
+                end
+            end
+        end
     end
 end
 
