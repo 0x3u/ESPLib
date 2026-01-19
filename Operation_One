@@ -92,10 +92,16 @@ local BONE_CONNECTIONS = {
 
 local function hasTeamHighlight(model)
     if not model then return false end
-    local existingHighlight = model:FindFirstChildOfClass("Highlight")
-    if existingHighlight then
-        return true
+    
+    local viewmodels = Workspace:FindFirstChild("Viewmodels")
+    if not viewmodels then return false end
+    
+    for _, child in pairs(viewmodels:GetChildren()) do
+        if child:IsA("Highlight") and child.Adornee == model then
+            return true
+        end
     end
+    
     return false
 end
 
