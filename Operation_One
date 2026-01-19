@@ -6,7 +6,7 @@ local CoreGui = game:GetService("CoreGui")
 local Lighting = cloneref(game:GetService("Lighting"))
 
 local ESP = {
-    Enabled = false,
+    Enabled = true,
     MaxDistance = 1000,
     FontSize = 11,
     FadeOut = {
@@ -61,10 +61,9 @@ local ESP = {
             },
         },
         Skeleton = {
-            Enabled = false,
+            Enabled = true,
             RGB = Color3.fromRGB(255, 255, 255),
             Thickness = 1,
-            Transparency = 0,
         },
         TeamCheck = {
             Enabled = false,
@@ -229,7 +228,7 @@ local function createSkeletonESP(character)
         line.Visible = false
         line.Color = ESP.Drawing.Skeleton.RGB
         line.Thickness = ESP.Drawing.Skeleton.Thickness
-        line.Transparency = ESP.Drawing.Skeleton.Transparency
+        line.Transparency = 0
         table.insert(skeletonLines, line)
     end
     
@@ -289,7 +288,7 @@ local function createSkeletonESP(character)
                     line.Visible = true
                     line.Color = ESP.Drawing.Skeleton.RGB
                     line.Thickness = ESP.Drawing.Skeleton.Thickness
-                    line.Transparency = ESP.Drawing.Skeleton.Transparency
+                    line.Transparency = 0
                 else
                     line.Visible = false
                 end
@@ -597,6 +596,32 @@ do
                 for _, model in pairs(viewmodels:GetChildren()) do
                     if model:IsA("Model") and isValidPlayer(model) then
                         createSkeletonESP(model)
+                    end
+                end
+            end
+        end
+    end
+    
+    ESP.SetSkeletonColor = function(color)
+        if typeof(color) == "Color3" then
+            ESP.Drawing.Skeleton.RGB = color
+            for _, skeletonData in pairs(ActiveSkeletons) do
+                if skeletonData and skeletonData.lines then
+                    for _, line in ipairs(skeletonData.lines) do
+                        line.Color = color
+                    end
+                end
+            end
+        end
+    end
+    
+    ESP.SetSkeletonThickness = function(thickness)
+        if type(thickness) == "number" and thickness > 0 then
+            ESP.Drawing.Skeleton.Thickness = thickness
+            for _, skeletonData in pairs(ActiveSkeletons) do
+                if skeletonData and skeletonData.lines then
+                    for _, line in ipairs(skeletonData.lines) do
+                        line.Thickness = thickness
                     end
                 end
             end
