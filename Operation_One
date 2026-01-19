@@ -141,20 +141,28 @@ do
 
     function Functions:FadeOutOnDist(element, distance)
         local transparency = math.max(0.1, 1 - (distance / ESP.MaxDistance))
-        if element:IsA("TextLabel") then
-            element.TextTransparency = 1 - transparency
-        elseif element:IsA("ImageLabel") then
-            element.ImageTransparency = 1 - transparency
-        elseif element:IsA("UIStroke") then
+        
+        -- Check type using typeof instead of IsA for Drawing objects
+        local elementType = typeof(element)
+        
+        if elementType == "Instance" then
+            -- Roblox Instance objects
+            if element:IsA("TextLabel") then
+                element.TextTransparency = 1 - transparency
+            elseif element:IsA("ImageLabel") then
+                element.ImageTransparency = 1 - transparency
+            elseif element:IsA("UIStroke") then
+                element.Transparency = 1 - transparency
+            elseif element:IsA("Frame") then
+                element.BackgroundTransparency = 1 - transparency
+            elseif element:IsA("Highlight") then
+                element.FillTransparency = 1 - transparency
+                element.OutlineTransparency = 1 - transparency
+            end
+        elseif elementType == "Line" then
+            -- Drawing Line object
             element.Transparency = 1 - transparency
-        elseif element:IsA("Frame") then
-            element.BackgroundTransparency = 1 - transparency
-        elseif element:IsA("Highlight") then
-            element.FillTransparency = 1 - transparency
-            element.OutlineTransparency = 1 - transparency
-        elseif element:IsA("Line") then
-            element.Transparency = 1 - transparency
-        end;
+        end
     end  
     
     function Functions:CleanAllESPs()
@@ -173,7 +181,7 @@ do
         for model, skeletonData in pairs(ActiveSkeletons) do
             if skeletonData then
                 for _, line in pairs(skeletonData.lines) do
-                    if line and line.Remove then
+                    if line and typeof(line) == "Line" then
                         line:Remove()
                     end
                 end
@@ -245,6 +253,11 @@ do
             end
         end
         
+        -- If no lines were created, return nil
+        if #skeletonLines == 0 then
+            return nil
+        end
+        
         -- Create skeleton data object
         local skeletonData = {
             lines = skeletonLines,
@@ -258,7 +271,9 @@ do
         local function UpdateSkeleton()
             if not ESP.Enabled or not ESP.Drawing.Skeleton.Enabled then
                 for _, line in ipairs(skeletonLines) do
-                    line.Visible = false
+                    if typeof(line) == "Line" then
+                        line.Visible = false
+                    end
                 end
                 return
             end
@@ -266,7 +281,9 @@ do
             -- Team check
             if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(character) then
                 for _, line in ipairs(skeletonLines) do
-                    line.Visible = false
+                    if typeof(line) == "Line" then
+                        line.Visible = false
+                    end
                 end
                 return
             end
@@ -274,7 +291,9 @@ do
             local torso = bones["torso"]
             if not torso or torso.Transparency >= 1 then
                 for _, line in ipairs(skeletonLines) do
-                    line.Visible = false
+                    if typeof(line) == "Line" then
+                        line.Visible = false
+                    end
                 end
                 return
             end
@@ -284,7 +303,9 @@ do
             
             if distance > ESP.MaxDistance then
                 for _, line in ipairs(skeletonLines) do
-                    line.Visible = false
+                    if typeof(line) == "Line" then
+                        line.Visible = false
+                    end
                 end
                 return
             end
@@ -297,6 +318,11 @@ do
                 
                 if bone1 and bone2 and lineIndex <= #skeletonLines then
                     local line = skeletonLines[lineIndex]
+                    
+                    if typeof(line) ~= "Line" then
+                        lineIndex = lineIndex + 1
+                        continue
+                    end
                     
                     -- Get screen positions
                     local pos1, onScreen1 = camera:WorldToViewportPoint(bone1.Position)
@@ -311,7 +337,7 @@ do
                         
                         -- Apply fade out
                         if ESP.FadeOut.OnDistance then
-                            Functions:FadeOutOnDist(line, distance)
+                            self:FadeOutOnDist(line, distance)
                         end
                     else
                         line.Visible = false
@@ -323,12 +349,16 @@ do
             
             -- Hide any extra lines
             for i = lineIndex, #skeletonLines do
-                skeletonLines[i].Visible = false
+                if typeof(skeletonLines[i]) == "Line" then
+                    skeletonLines[i].Visible = false
+                end
             end
         end
         
         -- Store connection and start updating
-        local connection = RunService.RenderStepped:Connect(UpdateSkeleton)
+        local connection = RunService.RenderStepped:Connect(function()
+            UpdateSkeleton()
+        end)
         skeletonData.connection = connection
         SkeletonConnections[character] = connection
         
@@ -341,7 +371,7 @@ do
         
         -- Remove lines
         for _, line in ipairs(skeletonData.lines) do
-            if line and line.Remove then
+            if line and typeof(line) == "Line" then
                 line:Remove()
             end
         end
@@ -659,6 +689,38 @@ do
                 for _, model in pairs(viewmodels:GetChildren()) do
                     if model:IsA("Model") and isValidPlayer(model) then
                         Functions:CreateSkeleton(model)
+                    end
+                end
+            end
+        end
+    end
+    
+    ESP.SetSkeletonColor = function(color)
+        if typeof(color) == "Color3" then
+            ESP.Drawing.Skeleton.RGB = color
+            -- Update existing skeleton lines
+            for _, skeletonData in pairs(ActiveSkeletons) do
+                if skeletonData and skeletonData.lines then
+                    for _, line in ipairs(skeletonData.lines) do
+                        if typeof(line) == "Line" then
+                            line.Color = color
+                        end
+                    end
+                end
+            end
+        end
+    end
+    
+    ESP.SetSkeletonThickness = function(thickness)
+        if type(thickness) == "number" and thickness > 0 then
+            ESP.Drawing.Skeleton.Thickness = thickness
+            -- Update existing skeleton lines
+            for _, skeletonData in pairs(ActiveSkeletons) do
+                if skeletonData and skeletonData.lines then
+                    for _, line in ipairs(skeletonData.lines) do
+                        if typeof(line) == "Line" then
+                            line.Thickness = thickness
+                        end
                     end
                 end
             end
