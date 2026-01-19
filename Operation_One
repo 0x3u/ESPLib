@@ -6,7 +6,7 @@ local CoreGui = game:GetService("CoreGui")
 local Lighting = cloneref(game:GetService("Lighting"))
 
 local ESP = {
-    Enabled = false,
+    Enabled = true,
     MaxDistance = 1000,
     FontSize = 11,
     FadeOut = {
