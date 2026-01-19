@@ -55,9 +55,9 @@ local ESP = {
                 Enabled = true,
                 RGB = Color3.fromRGB(255, 255, 255),
             },
-        },  -- Changed semicolon to comma here
-        TeamCheck = {  -- Now this is properly inside Drawing
-            Enabled = true,
+        },
+        TeamCheck = {
+            Enabled = false,  -- Changed to false by default
             HideTeammates = true,
             TeammateColor = Color3.fromRGB(0, 170, 255),
             EnemyColor = Color3.fromRGB(255, 50, 50),
@@ -91,21 +91,19 @@ local function hasTeamHighlight(model)
     return false
 end
 
-local function isTeammate(model)
+local function isEnemy(model)
     if not model then return false end
     
     -- Check if it's the local viewmodel
-    if model.Name == "LocalViewmodel" then return true end
+    if model.Name == "LocalViewmodel" then return false end
     
-    -- Team check via Highlight object
-    if ESP.Drawing.TeamCheck.Enabled then
-        local isTeammate = hasTeamHighlight(model)
-        if ESP.Drawing.TeamCheck.HideTeammates and isTeammate then
-            return true
-        end
+    -- If team check is disabled, treat everyone as enemy (show all ESP)
+    if not ESP.Drawing.TeamCheck.Enabled then
+        return true
     end
     
-    return false
+    -- If team check is enabled, only show ESP for enemies (no highlight)
+    return not hasTeamHighlight(model)
 end
 
 local function getTeamColor(model)
@@ -170,7 +168,11 @@ do
     local CreateESP = function(CharacterModel)
         if not CharacterModel then return end
         if not isValidPlayer(CharacterModel) then return end
-        if isTeammate(CharacterModel) then return end
+        
+        -- Team check logic: Only create ESP for enemies when team check is on
+        if ESP.Drawing.TeamCheck.Enabled and not isEnemy(CharacterModel) then
+            return  -- Don't create ESP for teammates when team check is enabled
+        end
         
         if ActiveESPs[CharacterModel] then
             return
@@ -241,7 +243,8 @@ do
                     return
                 end
                 
-                if isTeammate(CharacterModel) then
+                -- Updated team check in the updater as well
+                if ESP.Drawing.TeamCheck.Enabled and not isEnemy(CharacterModel) then
                     HideESP()
                     return
                 end
