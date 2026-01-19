@@ -228,7 +228,7 @@ local function createSkeletonESP(character)
         line.Visible = false
         line.Color = ESP.Drawing.Skeleton.RGB
         line.Thickness = ESP.Drawing.Skeleton.Thickness
-        line.Transparency = 0
+        line.Transparency = 1
         table.insert(skeletonLines, line)
     end
     
