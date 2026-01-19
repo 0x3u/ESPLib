@@ -33,6 +33,10 @@ local ESP = {
             Position = "Text",
             RGB = Color3.fromRGB(255, 255, 255),
         },
+        Weapons = {
+            Enabled = false,
+            RGB = Color3.fromRGB(255, 255, 255),
+        },
         Boxes = {
             Animate = false,
             RotationSpeed = 300,
@@ -57,7 +61,7 @@ local ESP = {
             },
         },
         TeamCheck = {
-            Enabled = false,  -- Disabled by default
+            Enabled = false,
         },
     },
 }
@@ -66,17 +70,14 @@ local lplayer = Players.LocalPlayer
 local Cam = Workspace.CurrentCamera
 
 local ESPCounter = 0
-local ActiveESPs = {}  -- Moved to global scope so we can access it
+local ActiveESPs = {}
 
 local function hasTeamHighlight(model)
     if not model then return false end
-    
-    -- Check if the model has a Highlight object (likely indicating team membership)
     local existingHighlight = model:FindFirstChildOfClass("Highlight")
     if existingHighlight then
         return true
     end
-    
     return false
 end
 
@@ -84,14 +85,21 @@ local function isValidPlayer(model)
     if not model then return false end
     if not model.Parent then return false end
     if model.Name == "LocalViewmodel" then return false end
-    
     local viewmodels = Workspace:FindFirstChild("Viewmodels")
     if not viewmodels or model.Parent ~= viewmodels then return false end
-    
     local torso = model:FindFirstChild("torso")
     if not torso or not torso:IsA("BasePart") then return false end
-    
     return true
+end
+
+local function findWeaponInCharacter(character)
+    if not character then return nil end
+    for _, child in pairs(character:GetChildren()) do
+        if child:IsA("Model") and child:GetAttribute("item_type") then
+            return child
+        end
+    end
+    return nil
 end
 
 local Functions = {}
@@ -118,7 +126,6 @@ do
         end;
     end  
     
-    -- NEW FUNCTION: Clean all ESPs
     function Functions:CleanAllESPs()
         for model, espFolder in pairs(ActiveESPs) do
             if espFolder and espFolder.Parent then
@@ -128,13 +135,10 @@ do
         ActiveESPs = {}
     end
     
-    -- NEW FUNCTION: Refresh ESPs (recreate them with current settings)
     function Functions:RefreshESPs()
         self:CleanAllESPs()
-        
         local viewmodels = Workspace:FindFirstChild("Viewmodels")
         if not viewmodels then return end
-        
         for _, model in pairs(viewmodels:GetChildren()) do
             if model:IsA("Model") then
                 task.spawn(function()
@@ -157,9 +161,8 @@ do
         if not CharacterModel then return end
         if not isValidPlayer(CharacterModel) then return end
         
-        -- Simple team check: if TeamCheck is enabled, don't create ESP for teammates
         if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
-            return  -- Don't create ESP for teammates
+            return
         end
         
         if ActiveESPs[CharacterModel] then
@@ -174,6 +177,7 @@ do
         ActiveESPs[CharacterModel] = ESPFolder
         
         local Name = Functions:Create("TextLabel", {Parent = ESPFolder, Name = "NameLabel", Position = UDim2.new(0.5, 0, 0, -11), Size = UDim2.new(0, 100, 0, 20), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Code, TextSize = ESP.FontSize, TextStrokeTransparency = 0, TextStrokeColor3 = Color3.fromRGB(0, 0, 0), RichText = true})
+        local Weapon = Functions:Create("TextLabel", {Parent = ESPFolder, Name = "WeaponLabel", Position = UDim2.new(0.5, 0, 0, 0), Size = UDim2.new(0, 100, 0, 20), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Code, TextSize = ESP.FontSize, TextStrokeTransparency = 0, TextStrokeColor3 = Color3.fromRGB(0, 0, 0), RichText = true})
         local Box = Functions:Create("Frame", {Parent = ESPFolder, Name = "Box", BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.75, BorderSizePixel = 0})
         local Gradient1 = Functions:Create("UIGradient", {Parent = Box, Enabled = ESP.Drawing.Boxes.GradientFill, Color = ColorSequence.new{ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientFillRGB1), ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientFillRGB2)}})
         local Outline = Functions:Create("UIStroke", {Parent = Box, Enabled = ESP.Drawing.Boxes.Gradient, Transparency = 0, Color = Color3.fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter})
@@ -198,6 +202,7 @@ do
             local function HideESP()
                 Box.Visible = false
                 Name.Visible = false
+                Weapon.Visible = false
                 LeftTop.Visible = false
                 LeftSide.Visible = false
                 BottomSide.Visible = false
@@ -231,7 +236,6 @@ do
                     return
                 end
                 
-                -- Simple team check in updater too
                 if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
                     HideESP()
                     return
@@ -256,6 +260,7 @@ do
                         Functions:FadeOutOnDist(Box, Dist)
                         Functions:FadeOutOnDist(Outline, Dist)
                         Functions:FadeOutOnDist(Name, Dist)
+                        Functions:FadeOutOnDist(Weapon, Dist)
                         Functions:FadeOutOnDist(LeftTop, Dist)
                         Functions:FadeOutOnDist(LeftSide, Dist)
                         Functions:FadeOutOnDist(BottomSide, Dist)
@@ -361,6 +366,20 @@ do
                         Name.TextColor3 = ESP.Drawing.Names.RGB
                         Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 + verticalOffset)
                     end
+
+                    do
+                        Weapon.Visible = ESP.Drawing.Weapons.Enabled
+                        if ESP.Drawing.Weapons.Enabled then
+                            local weaponModel = findWeaponInCharacter(CharacterModel)
+                            if weaponModel then
+                                Weapon.Text = weaponModel.Name
+                                Weapon.TextColor3 = ESP.Drawing.Weapons.RGB
+                                Weapon.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 9 + verticalOffset)
+                            else
+                                Weapon.Visible = false
+                            end
+                        end
+                    end
                 else
                     HideESP();
                 end
@@ -405,7 +424,6 @@ do
     
     MonitorViewmodels()
     
-    -- EXPOSE FUNCTIONS TO THE ESP TABLE
     ESP.RefreshESPs = function()
         Functions:RefreshESPs()
     end
