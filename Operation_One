@@ -66,6 +66,7 @@ local lplayer = Players.LocalPlayer
 local Cam = Workspace.CurrentCamera
 
 local ESPCounter = 0
+local ActiveESPs = {}  -- Moved to global scope so we can access it
 
 local function hasTeamHighlight(model)
     if not model then return false end
@@ -115,16 +116,42 @@ do
             element.FillTransparency = 1 - transparency
             element.OutlineTransparency = 1 - transparency
         end;
-    end;  
-end;
+    end  
+    
+    -- NEW FUNCTION: Clean all ESPs
+    function Functions:CleanAllESPs()
+        for model, espFolder in pairs(ActiveESPs) do
+            if espFolder and espFolder.Parent then
+                espFolder:Destroy()
+            end
+        end
+        ActiveESPs = {}
+    end
+    
+    -- NEW FUNCTION: Refresh ESPs (recreate them with current settings)
+    function Functions:RefreshESPs()
+        self:CleanAllESPs()
+        
+        local viewmodels = Workspace:FindFirstChild("Viewmodels")
+        if not viewmodels then return end
+        
+        for _, model in pairs(viewmodels:GetChildren()) do
+            if model:IsA("Model") then
+                task.spawn(function()
+                    task.wait(0.1)
+                    CreateESP(model)
+                end)
+            end
+        end
+    end
+end
 
 do
     if CoreGui:FindFirstChild("ESPHolder") then
         CoreGui["ESPHolder"]:Destroy()
     end
 
-    local ScreenGui = Functions:Create("ScreenGui", {Parent = CoreGui, Name = "ESPHolder"});
-    local ActiveESPs = {}
+    local ScreenGui = Functions:Create("ScreenGui", {Parent = CoreGui, Name = "ESPHolder"})
 
     local CreateESP = function(CharacterModel)
         if not CharacterModel then return end
@@ -377,6 +404,15 @@ do
     end
     
     MonitorViewmodels()
+    
+    -- EXPOSE FUNCTIONS TO THE ESP TABLE
+    ESP.RefreshESPs = function()
+        Functions:RefreshESPs()
+    end
+    
+    ESP.CleanAllESPs = function()
+        Functions:CleanAllESPs()
+    end
 end
 
 return ESP
