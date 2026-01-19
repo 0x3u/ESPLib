@@ -109,12 +109,14 @@ local function isTeammate(model)
 end
 
 local function getTeamColor(model)
-    if not model then return ESP.Drawing.TeamCheck.EnemyColor end
+    if not model then 
+        return ESP.Drawing.TeamCheck and ESP.Drawing.TeamCheck.EnemyColor or Color3.fromRGB(255, 50, 50)
+    end
     
     if hasTeamHighlight(model) then
-        return ESP.Drawing.TeamCheck.TeammateColor
+        return ESP.Drawing.TeamCheck and ESP.Drawing.TeamCheck.TeammateColor or Color3.fromRGB(0, 170, 255)
     else
-        return ESP.Drawing.TeamCheck.EnemyColor
+        return ESP.Drawing.TeamCheck and ESP.Drawing.TeamCheck.EnemyColor or Color3.fromRGB(255, 50, 50)
     end
 end
 
