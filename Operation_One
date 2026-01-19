@@ -94,56 +94,272 @@ local function isValidPlayer(model)
     return true
 end
 
+-- Define Functions table FIRST
 local Functions = {}
-do
-    function Functions:Create(Class, Properties)
-        local _Instance = typeof(Class) == 'string' and Instance.new(Class) or Class
-        for Property, Value in pairs(Properties) do _Instance[Property] = Value end
-        return _Instance;
-    end
 
-    function Functions:FadeOutOnDist(element, distance)
-        local transparency = math.max(0.1, 1 - (distance / ESP.MaxDistance))
-        if element:IsA("TextLabel") then
-            element.TextTransparency = 1 - transparency
-        elseif element:IsA("ImageLabel") then
-            element.ImageTransparency = 1 - transparency
-        elseif element:IsA("UIStroke") then
-            element.Transparency = 1 - transparency
-        elseif element:IsA("Frame") then
-            element.BackgroundTransparency = 1 - transparency
-        elseif element:IsA("Highlight") then
-            element.FillTransparency = 1 - transparency
-            element.OutlineTransparency = 1 - transparency
-        end;
-    end  
-    
-    -- NEW FUNCTION: Clean all ESPs
-    function Functions:CleanAllESPs()
-        for model, espFolder in pairs(ActiveESPs) do
-            if espFolder and espFolder.Parent then
-                espFolder:Destroy()
-            end
-        end
-        ActiveESPs = {}
-    end
-    
-    -- NEW FUNCTION: Refresh ESPs (recreate them with current settings)
-    function Functions:RefreshESPs()
-        self:CleanAllESPs()
-        
-        local viewmodels = Workspace:FindFirstChild("Viewmodels")
-        if not viewmodels then return end
-        
-        for _, model in pairs(viewmodels:GetChildren()) do
-            if model:IsA("Model") then
-                task.spawn(function()
-                    task.wait(0.1)
-                    CreateESP(model)
-                end)
-            end
+function Functions:Create(Class, Properties)
+    local _Instance = typeof(Class) == 'string' and Instance.new(Class) or Class
+    for Property, Value in pairs(Properties) do _Instance[Property] = Value end
+    return _Instance;
+end
+
+function Functions:FadeOutOnDist(element, distance)
+    local transparency = math.max(0.1, 1 - (distance / ESP.MaxDistance))
+    if element:IsA("TextLabel") then
+        element.TextTransparency = 1 - transparency
+    elseif element:IsA("ImageLabel") then
+        element.ImageTransparency = 1 - transparency
+    elseif element:IsA("UIStroke") then
+        element.Transparency = 1 - transparency
+    elseif element:IsA("Frame") then
+        element.BackgroundTransparency = 1 - transparency
+    elseif element:IsA("Highlight") then
+        element.FillTransparency = 1 - transparency
+        element.OutlineTransparency = 1 - transparency
+    end;
+end  
+
+function Functions:CleanAllESPs()
+    for model, espFolder in pairs(ActiveESPs) do
+        if espFolder and espFolder.Parent then
+            espFolder:Destroy()
         end
     end
+    ActiveESPs = {}
+end
+
+function Functions:RefreshESPs()
+    self:CleanAllESPs()
+    
+    local viewmodels = Workspace:FindFirstChild("Viewmodels")
+    if not viewmodels then return end
+    
+    for _, model in pairs(viewmodels:GetChildren()) do
+        if model:IsA("Model") then
+            task.spawn(function()
+                task.wait(0.1)
+                CreateESP(model)
+            end)
+        end
+    end
+end
+
+-- Now define the CreateESP function AFTER Functions table
+local function CreateESP(CharacterModel)
+    if not CharacterModel then return end
+    if not isValidPlayer(CharacterModel) then return end
+    
+    -- Simple team check: if TeamCheck is enabled, don't create ESP for teammates
+    if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
+        return  -- Don't create ESP for teammates
+    end
+    
+    if ActiveESPs[CharacterModel] then
+        return
+    end
+    
+    ESPCounter = ESPCounter + 1
+    local GuiName = "ESP_" .. CharacterModel.Name .. "_" .. ESPCounter
+    
+    local ESPFolder = Functions:Create("Folder", {Parent = ScreenGui, Name = GuiName})
+    
+    ActiveESPs[CharacterModel] = ESPFolder
+    
+    local Name = Functions:Create("TextLabel", {Parent = ESPFolder, Name = "NameLabel", Position = UDim2.new(0.5, 0, 0, -11), Size = UDim2.new(0, 100, 0, 20), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Code, TextSize = ESP.FontSize, TextStrokeTransparency = 0, TextStrokeColor3 = Color3.fromRGB(0, 0, 0), RichText = true})
+    local Box = Functions:Create("Frame", {Parent = ESPFolder, Name = "Box", BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.75, BorderSizePixel = 0})
+    local Gradient1 = Functions:Create("UIGradient", {Parent = Box, Enabled = ESP.Drawing.Boxes.GradientFill, Color = ColorSequence.new{ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientFillRGB1), ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientFillRGB2)}})
+    local Outline = Functions:Create("UIStroke", {Parent = Box, Enabled = ESP.Drawing.Boxes.Gradient, Transparency = 0, Color = Color3.fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter})
+    local Gradient2 = Functions:Create("UIGradient", {Parent = Outline, Enabled = ESP.Drawing.Boxes.Gradient, Color = ColorSequence.new{ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1), ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2)}})
+    
+    local Chams = Functions:Create("Highlight", {Parent = ESPFolder, Name = "Chams", FillTransparency = 1, OutlineTransparency = 0, OutlineColor = Color3.fromRGB(119, 120, 255), DepthMode = "AlwaysOnTop"})
+    
+    local LeftTop = Functions:Create("Frame", {Parent = ESPFolder, Name = "LeftTop", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
+    local LeftSide = Functions:Create("Frame", {Parent = ESPFolder, Name = "LeftSide", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
+    local RightTop = Functions:Create("Frame", {Parent = ESPFolder, Name = "RightTop", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
+    local RightSide = Functions:Create("Frame", {Parent = ESPFolder, Name = "RightSide", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
+    local BottomSide = Functions:Create("Frame", {Parent = ESPFolder, Name = "BottomSide", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
+    local BottomDown = Functions:Create("Frame", {Parent = ESPFolder, Name = "BottomDown", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
+    local BottomRightSide = Functions:Create("Frame", {Parent = ESPFolder, Name = "BottomRightSide", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
+    local BottomRightDown = Functions:Create("Frame", {Parent = ESPFolder, Name = "BottomRightDown", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
+
+    local RotationAngle = -45
+    local LastTick = tick()
+
+    local Updater = function()
+        local Connection;
+        local function HideESP()
+            Box.Visible = false
+            Name.Visible = false
+            LeftTop.Visible = false
+            LeftSide.Visible = false
+            BottomSide.Visible = false
+            BottomDown.Visible = false
+            RightTop.Visible = false
+            RightSide.Visible = false
+            BottomRightSide.Visible = false
+            BottomRightDown.Visible = false
+            Chams.Enabled = false
+        end
+        
+        local function CleanupESP()
+            if Connection then Connection:Disconnect() end
+            if ESPFolder then ESPFolder:Destroy() end
+            ActiveESPs[CharacterModel] = nil
+        end
+
+        Connection = RunService.RenderStepped:Connect(function()
+            if not ESP.Enabled then
+                HideESP()
+                return
+            end
+            
+            if not CharacterModel or not CharacterModel.Parent then
+                CleanupESP()
+                return
+            end
+            
+            if not isValidPlayer(CharacterModel) then
+                CleanupESP()
+                return
+            end
+            
+            -- Simple team check in updater too
+            if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
+                HideESP()
+                return
+            end
+
+            local torso = CharacterModel:FindFirstChild("torso")
+            if not torso or torso.Transparency >= 1 then
+                HideESP()
+                return
+            end
+
+            local Pos, OnScreen = Cam:WorldToScreenPoint(torso.Position)
+            local Dist = (Cam.CFrame.Position - torso.Position).Magnitude / 3.5714285714
+            
+            if OnScreen and Dist <= ESP.MaxDistance then
+                local Size = torso.Size.Y
+                local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
+                local w, h = 2 * scaleFactor, 4.75 * scaleFactor
+                local verticalOffset = h * 0.175
+                
+                if ESP.FadeOut.OnDistance then
+                    Functions:FadeOutOnDist(Box, Dist)
+                    Functions:FadeOutOnDist(Outline, Dist)
+                    Functions:FadeOutOnDist(Name, Dist)
+                    Functions:FadeOutOnDist(LeftTop, Dist)
+                    Functions:FadeOutOnDist(LeftSide, Dist)
+                    Functions:FadeOutOnDist(BottomSide, Dist)
+                    Functions:FadeOutOnDist(BottomDown, Dist)
+                    Functions:FadeOutOnDist(RightTop, Dist)
+                    Functions:FadeOutOnDist(RightSide, Dist)
+                    Functions:FadeOutOnDist(BottomRightSide, Dist)
+                    Functions:FadeOutOnDist(BottomRightDown, Dist)
+                    Functions:FadeOutOnDist(Chams, Dist)
+                end
+
+                do
+                    Chams.Adornee = CharacterModel
+                    Chams.Enabled = ESP.Drawing.Chams.Enabled
+                    Chams.FillColor = ESP.Drawing.Chams.FillRGB
+                    Chams.OutlineColor = ESP.Drawing.Chams.OutlineRGB
+                    
+                    if ESP.Drawing.Chams.Thermal then
+                        local breathe_effect = math.atan(math.sin(tick() * 2)) * 2 / math.pi
+                        Chams.FillTransparency = (ESP.Drawing.Chams.Fill_Transparency / 100) * (1 - (breathe_effect * 0.1))
+                        Chams.OutlineTransparency = ESP.Drawing.Chams.Outline_Transparency
+                    end
+                    Chams.DepthMode = ESP.Drawing.Chams.VisibleCheck and "Occluded" or "AlwaysOnTop"
+                end
+
+                do
+                    LeftTop.Visible = ESP.Drawing.Boxes.Corner.Enabled
+                    LeftTop.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
+                    LeftTop.Size = UDim2.new(0, w / 5, 0, 1)
+                    
+                    LeftSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
+                    LeftSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
+                    LeftSide.Size = UDim2.new(0, 1, 0, h / 5)
+                    
+                    BottomSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
+                    BottomSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset)
+                    BottomSide.Size = UDim2.new(0, 1, 0, h / 5)
+                    BottomSide.AnchorPoint = Vector2.new(0, 5)
+                    
+                    BottomDown.Visible = ESP.Drawing.Boxes.Corner.Enabled
+                    BottomDown.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset)
+                    BottomDown.Size = UDim2.new(0, w / 5, 0, 1)
+                    BottomDown.AnchorPoint = Vector2.new(0, 1)
+                    
+                    RightTop.Visible = ESP.Drawing.Boxes.Corner.Enabled
+                    RightTop.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y - h / 2 + verticalOffset)
+                    RightTop.Size = UDim2.new(0, w / 5, 0, 1)
+                    RightTop.AnchorPoint = Vector2.new(1, 0)
+                    
+                    RightSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
+                    RightSide.Position = UDim2.new(0, Pos.X + w / 2 - 1, 0, Pos.Y - h / 2 + verticalOffset)
+                    RightSide.Size = UDim2.new(0, 1, 0, h / 5)
+                    RightSide.AnchorPoint = Vector2.new(0, 0)
+                    
+                    BottomRightSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
+                    BottomRightSide.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 2 + verticalOffset)
+                    BottomRightSide.Size = UDim2.new(0, 1, 0, h / 5)
+                    BottomRightSide.AnchorPoint = Vector2.new(1, 1)
+                    
+                    BottomRightDown.Visible = ESP.Drawing.Boxes.Corner.Enabled
+                    BottomRightDown.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 2 + verticalOffset)
+                    BottomRightDown.Size = UDim2.new(0, w / 5, 0, 1)
+                    BottomRightDown.AnchorPoint = Vector2.new(1, 1)                                                            
+                end
+
+                do
+                    Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
+                    Box.Size = UDim2.new(0, w, 0, h)
+                    Box.Visible = ESP.Drawing.Boxes.Full.Enabled;
+                    
+                    if ESP.Drawing.Boxes.Filled.Enabled then
+                        Box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                        Box.BackgroundTransparency = ESP.Drawing.Boxes.GradientFill and ESP.Drawing.Boxes.Filled.Transparency or 1
+                        Box.BorderSizePixel = 1
+                    else
+                        Box.BackgroundTransparency = 1
+                    end
+                    
+                    local CurrentTick = tick()
+                    local DeltaTime = CurrentTick - LastTick
+                    RotationAngle = RotationAngle + DeltaTime * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * CurrentTick - math.pi / 2)
+                    
+                    if ESP.Drawing.Boxes.Animate then
+                        Gradient1.Rotation = RotationAngle
+                        Gradient2.Rotation = RotationAngle
+                    else
+                        Gradient1.Rotation = -45
+                        Gradient2.Rotation = -45
+                    end
+                    
+                    LastTick = CurrentTick
+                end
+
+                do
+                    Name.Visible = ESP.Drawing.Names.Enabled
+                    local nameText = CharacterModel.Name
+                    
+                    if ESP.Drawing.Distances.Enabled then
+                        nameText = string.format('%s [%d]', nameText, math.floor(Dist))
+                    end
+                    
+                    Name.Text = string.format('(<font color="rgb(%d, %d, %d)">T</font>) %s', 255, 255, 255, nameText)
+                    Name.TextColor3 = ESP.Drawing.Names.RGB
+                    Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 + verticalOffset)
+                end
+            else
+                HideESP();
+            end
+        end)
+    end
+    
+    task.spawn(Updater)
 end
 
 do
@@ -152,223 +368,6 @@ do
     end
 
     local ScreenGui = Functions:Create("ScreenGui", {Parent = CoreGui, Name = "ESPHolder"})
-
-    local CreateESP = function(CharacterModel)
-        if not CharacterModel then return end
-        if not isValidPlayer(CharacterModel) then return end
-        
-        -- Simple team check: if TeamCheck is enabled, don't create ESP for teammates
-        if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
-            return  -- Don't create ESP for teammates
-        end
-        
-        if ActiveESPs[CharacterModel] then
-            return
-        end
-        
-        ESPCounter = ESPCounter + 1
-        local GuiName = "ESP_" .. CharacterModel.Name .. "_" .. ESPCounter
-        
-        local ESPFolder = Functions:Create("Folder", {Parent = ScreenGui, Name = GuiName})
-        
-        ActiveESPs[CharacterModel] = ESPFolder
-        
-        local Name = Functions:Create("TextLabel", {Parent = ESPFolder, Name = "NameLabel", Position = UDim2.new(0.5, 0, 0, -11), Size = UDim2.new(0, 100, 0, 20), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Code, TextSize = ESP.FontSize, TextStrokeTransparency = 0, TextStrokeColor3 = Color3.fromRGB(0, 0, 0), RichText = true})
-        local Box = Functions:Create("Frame", {Parent = ESPFolder, Name = "Box", BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.75, BorderSizePixel = 0})
-        local Gradient1 = Functions:Create("UIGradient", {Parent = Box, Enabled = ESP.Drawing.Boxes.GradientFill, Color = ColorSequence.new{ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientFillRGB1), ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientFillRGB2)}})
-        local Outline = Functions:Create("UIStroke", {Parent = Box, Enabled = ESP.Drawing.Boxes.Gradient, Transparency = 0, Color = Color3.fromRGB(255, 255, 255), LineJoinMode = Enum.LineJoinMode.Miter})
-        local Gradient2 = Functions:Create("UIGradient", {Parent = Outline, Enabled = ESP.Drawing.Boxes.Gradient, Color = ColorSequence.new{ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1), ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2)}})
-        
-        local Chams = Functions:Create("Highlight", {Parent = ESPFolder, Name = "Chams", FillTransparency = 1, OutlineTransparency = 0, OutlineColor = Color3.fromRGB(119, 120, 255), DepthMode = "AlwaysOnTop"})
-        
-        local LeftTop = Functions:Create("Frame", {Parent = ESPFolder, Name = "LeftTop", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
-        local LeftSide = Functions:Create("Frame", {Parent = ESPFolder, Name = "LeftSide", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
-        local RightTop = Functions:Create("Frame", {Parent = ESPFolder, Name = "RightTop", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
-        local RightSide = Functions:Create("Frame", {Parent = ESPFolder, Name = "RightSide", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
-        local BottomSide = Functions:Create("Frame", {Parent = ESPFolder, Name = "BottomSide", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
-        local BottomDown = Functions:Create("Frame", {Parent = ESPFolder, Name = "BottomDown", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
-        local BottomRightSide = Functions:Create("Frame", {Parent = ESPFolder, Name = "BottomRightSide", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
-        local BottomRightDown = Functions:Create("Frame", {Parent = ESPFolder, Name = "BottomRightDown", BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB, Position = UDim2.new(0, 0, 0, 0)})
-
-        local RotationAngle = -45
-        local LastTick = tick()
-
-        local Updater = function()
-            local Connection;
-            local function HideESP()
-                Box.Visible = false
-                Name.Visible = false
-                LeftTop.Visible = false
-                LeftSide.Visible = false
-                BottomSide.Visible = false
-                BottomDown.Visible = false
-                RightTop.Visible = false
-                RightSide.Visible = false
-                BottomRightSide.Visible = false
-                BottomRightDown.Visible = false
-                Chams.Enabled = false
-            end
-            
-            local function CleanupESP()
-                if Connection then Connection:Disconnect() end
-                if ESPFolder then ESPFolder:Destroy() end
-                ActiveESPs[CharacterModel] = nil
-            end
-
-            Connection = RunService.RenderStepped:Connect(function()
-                if not ESP.Enabled then
-                    HideESP()
-                    return
-                end
-                
-                if not CharacterModel or not CharacterModel.Parent then
-                    CleanupESP()
-                    return
-                end
-                
-                if not isValidPlayer(CharacterModel) then
-                    CleanupESP()
-                    return
-                end
-                
-                -- Simple team check in updater too
-                if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
-                    HideESP()
-                    return
-                end
-
-                local torso = CharacterModel:FindFirstChild("torso")
-                if not torso or torso.Transparency >= 1 then
-                    HideESP()
-                    return
-                end
-
-                local Pos, OnScreen = Cam:WorldToScreenPoint(torso.Position)
-                local Dist = (Cam.CFrame.Position - torso.Position).Magnitude / 3.5714285714
-                
-                if OnScreen and Dist <= ESP.MaxDistance then
-                    local Size = torso.Size.Y
-                    local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
-                    local w, h = 2 * scaleFactor, 4.75 * scaleFactor
-                    local verticalOffset = h * 0.175
-                    
-                    if ESP.FadeOut.OnDistance then
-                        Functions:FadeOutOnDist(Box, Dist)
-                        Functions:FadeOutOnDist(Outline, Dist)
-                        Functions:FadeOutOnDist(Name, Dist)
-                        Functions:FadeOutOnDist(LeftTop, Dist)
-                        Functions:FadeOutOnDist(LeftSide, Dist)
-                        Functions:FadeOutOnDist(BottomSide, Dist)
-                        Functions:FadeOutOnDist(BottomDown, Dist)
-                        Functions:FadeOutOnDist(RightTop, Dist)
-                        Functions:FadeOutOnDist(RightSide, Dist)
-                        Functions:FadeOutOnDist(BottomRightSide, Dist)
-                        Functions:FadeOutOnDist(BottomRightDown, Dist)
-                        Functions:FadeOutOnDist(Chams, Dist)
-                    end
-
-                    do
-                        Chams.Adornee = CharacterModel
-                        Chams.Enabled = ESP.Drawing.Chams.Enabled
-                        Chams.FillColor = ESP.Drawing.Chams.FillRGB
-                        Chams.OutlineColor = ESP.Drawing.Chams.OutlineRGB
-                        
-                        if ESP.Drawing.Chams.Thermal then
-                            local breathe_effect = math.atan(math.sin(tick() * 2)) * 2 / math.pi
-                            Chams.FillTransparency = (ESP.Drawing.Chams.Fill_Transparency / 100) * (1 - (breathe_effect * 0.1))
-                            Chams.OutlineTransparency = ESP.Drawing.Chams.Outline_Transparency
-                        end
-                        Chams.DepthMode = ESP.Drawing.Chams.VisibleCheck and "Occluded" or "AlwaysOnTop"
-                    end
-
-                    do
-                        LeftTop.Visible = ESP.Drawing.Boxes.Corner.Enabled
-                        LeftTop.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
-                        LeftTop.Size = UDim2.new(0, w / 5, 0, 1)
-                        
-                        LeftSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
-                        LeftSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
-                        LeftSide.Size = UDim2.new(0, 1, 0, h / 5)
-                        
-                        BottomSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
-                        BottomSide.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset)
-                        BottomSide.Size = UDim2.new(0, 1, 0, h / 5)
-                        BottomSide.AnchorPoint = Vector2.new(0, 5)
-                        
-                        BottomDown.Visible = ESP.Drawing.Boxes.Corner.Enabled
-                        BottomDown.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset)
-                        BottomDown.Size = UDim2.new(0, w / 5, 0, 1)
-                        BottomDown.AnchorPoint = Vector2.new(0, 1)
-                        
-                        RightTop.Visible = ESP.Drawing.Boxes.Corner.Enabled
-                        RightTop.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y - h / 2 + verticalOffset)
-                        RightTop.Size = UDim2.new(0, w / 5, 0, 1)
-                        RightTop.AnchorPoint = Vector2.new(1, 0)
-                        
-                        RightSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
-                        RightSide.Position = UDim2.new(0, Pos.X + w / 2 - 1, 0, Pos.Y - h / 2 + verticalOffset)
-                        RightSide.Size = UDim2.new(0, 1, 0, h / 5)
-                        RightSide.AnchorPoint = Vector2.new(0, 0)
-                        
-                        BottomRightSide.Visible = ESP.Drawing.Boxes.Corner.Enabled
-                        BottomRightSide.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 2 + verticalOffset)
-                        BottomRightSide.Size = UDim2.new(0, 1, 0, h / 5)
-                        BottomRightSide.AnchorPoint = Vector2.new(1, 1)
-                        
-                        BottomRightDown.Visible = ESP.Drawing.Boxes.Corner.Enabled
-                        BottomRightDown.Position = UDim2.new(0, Pos.X + w / 2, 0, Pos.Y + h / 2 + verticalOffset)
-                        BottomRightDown.Size = UDim2.new(0, w / 5, 0, 1)
-                        BottomRightDown.AnchorPoint = Vector2.new(1, 1)                                                            
-                    end
-
-                    do
-                        Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
-                        Box.Size = UDim2.new(0, w, 0, h)
-                        Box.Visible = ESP.Drawing.Boxes.Full.Enabled;
-                        
-                        if ESP.Drawing.Boxes.Filled.Enabled then
-                            Box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                            Box.BackgroundTransparency = ESP.Drawing.Boxes.GradientFill and ESP.Drawing.Boxes.Filled.Transparency or 1
-                            Box.BorderSizePixel = 1
-                        else
-                            Box.BackgroundTransparency = 1
-                        end
-                        
-                        local CurrentTick = tick()
-                        local DeltaTime = CurrentTick - LastTick
-                        RotationAngle = RotationAngle + DeltaTime * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * CurrentTick - math.pi / 2)
-                        
-                        if ESP.Drawing.Boxes.Animate then
-                            Gradient1.Rotation = RotationAngle
-                            Gradient2.Rotation = RotationAngle
-                        else
-                            Gradient1.Rotation = -45
-                            Gradient2.Rotation = -45
-                        end
-                        
-                        LastTick = CurrentTick
-                    end
-
-                    do
-                        Name.Visible = ESP.Drawing.Names.Enabled
-                        local nameText = CharacterModel.Name
-                        
-                        if ESP.Drawing.Distances.Enabled then
-                            nameText = string.format('%s [%d]', nameText, math.floor(Dist))
-                        end
-                        
-                        Name.Text = string.format('(<font color="rgb(%d, %d, %d)">T</font>) %s', 255, 255, 255, nameText)
-                        Name.TextColor3 = ESP.Drawing.Names.RGB
-                        Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9 + verticalOffset)
-                    end
-                else
-                    HideESP();
-                end
-            end)
-        end
-        
-        task.spawn(Updater)
-    end
 
     local function MonitorViewmodels()
         local viewmodels = Workspace:FindFirstChild("Viewmodels")
