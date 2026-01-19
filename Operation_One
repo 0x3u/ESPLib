@@ -16,25 +16,25 @@ local ESP = {
     },
     Drawing = {
         Chams = {
-            Enabled  = true,
-            Thermal = true,
+            Enabled  = false,
+            Thermal = false,
             FillRGB = Color3.fromRGB(243, 116, 166),
             Fill_Transparency = 60,
             OutlineRGB = Color3.fromRGB(220, 70, 140),
             Outline_Transparency = 0,
-            VisibleCheck = true,
+            VisibleCheck = false,
         },
         Names = {
-            Enabled = true,
+            Enabled = false,
             RGB = Color3.fromRGB(255, 255, 255),
         },
         Distances = {
-            Enabled = true, 
+            Enabled = false, 
             Position = "Text",
             RGB = Color3.fromRGB(255, 255, 255),
         },
         Boxes = {
-            Animate = true,
+            Animate = false,
             RotationSpeed = 300,
             Gradient = false, 
             GradientRGB1 = Color3.fromRGB(243, 116, 116), 
@@ -43,16 +43,16 @@ local ESP = {
             GradientFillRGB1 = Color3.fromRGB(243, 116, 116), 
             GradientFillRGB2 = Color3.fromRGB(0, 0, 0), 
             Filled = {
-                Enabled = true,
+                Enabled = false,
                 Transparency = 0.75,
                 RGB = Color3.fromRGB(0, 0, 0),
             },
             Full = {
-                Enabled = true,
+                Enabled = false,
                 RGB = Color3.fromRGB(255, 255, 255),
             },
             Corner = {
-                Enabled = true,
+                Enabled = false,
                 RGB = Color3.fromRGB(255, 255, 255),
             },
         },
