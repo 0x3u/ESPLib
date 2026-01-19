@@ -78,7 +78,6 @@ local ESPCounter = 0
 local ActiveESPs = {}
 local ActiveSkeletons = {}
 
--- Bone connection mapping for skeleton ESP
 local BONE_CONNECTIONS = {
     {"torso", "shoulder1"},
     {"torso", "shoulder2"},
@@ -154,7 +153,6 @@ do
         end
         ActiveESPs = {}
         
-        -- Clean up all skeletons
         self:CleanAllSkeletons()
     end
     
@@ -192,29 +190,24 @@ do
         local skeletonData = ActiveSkeletons[character]
         if not skeletonData then return end
         
-        -- Remove lines
         for _, line in ipairs(skeletonData.lines) do
             if line then
                 line:Remove()
             end
         end
         
-        -- Disconnect connection
         if skeletonData.connection then
             skeletonData.connection:Disconnect()
         end
         
-        -- Remove from active skeletons
         ActiveSkeletons[character] = nil
     end
 end
 
--- Simple Skeleton ESP System
 local function createSkeletonESP(character)
     if not character or ActiveSkeletons[character] then return end
     if not isValidPlayer(character) then return end
     
-    -- Check if we have all the required bones
     local bones = {}
     local hasAllBones = true
     for _, boneName in ipairs({"torso", "head", "shoulder1", "shoulder2", "arm1", "arm2", "hip1", "hip2", "leg1", "leg2"}) do
@@ -229,18 +222,16 @@ local function createSkeletonESP(character)
     
     if not hasAllBones then return end
     
-    -- Create drawing lines for skeleton
     local skeletonLines = {}
     for _, connection in ipairs(BONE_CONNECTIONS) do
         local line = Drawing.new("Line")
         line.Visible = false
         line.Color = ESP.Drawing.Skeleton.RGB
         line.Thickness = ESP.Drawing.Skeleton.Thickness
-        line.Transparency = 1
+        line.Transparency = 0
         table.insert(skeletonLines, line)
     end
     
-    -- Store skeleton data
     local skeletonData = {
         lines = skeletonLines,
         bones = bones,
@@ -249,7 +240,6 @@ local function createSkeletonESP(character)
     
     ActiveSkeletons[character] = skeletonData
     
-    -- Create update connection
     local connection = RunService.RenderStepped:Connect(function()
         if not ESP.Enabled or not ESP.Drawing.Skeleton.Enabled then
             for _, line in ipairs(skeletonLines) do
@@ -258,7 +248,6 @@ local function createSkeletonESP(character)
             return
         end
         
-        -- Team check
         if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(character) then
             for _, line in ipairs(skeletonLines) do
                 line.Visible = false
@@ -284,7 +273,6 @@ local function createSkeletonESP(character)
             return
         end
         
-        -- Update each skeleton line
         for i, connection in ipairs(BONE_CONNECTIONS) do
             local bone1Name, bone2Name = connection[1], connection[2]
             local bone1, bone2 = bones[bone1Name], bones[bone2Name]
@@ -402,7 +390,6 @@ do
                     return
                 end
                 
-                -- Team check
                 if ESP.Drawing.TeamCheck.Enabled and hasTeamHighlight(CharacterModel) then
                     HideESP()
                     return
@@ -542,7 +529,6 @@ do
                         end
                     end
                     
-                    -- Create skeleton if enabled
                     if ESP.Drawing.Skeleton.Enabled and not ActiveSkeletons[CharacterModel] then
                         createSkeletonESP(CharacterModel)
                     end
@@ -605,7 +591,6 @@ do
         if not enabled then
             Functions:CleanAllSkeletons()
         else
-            -- Create skeletons for existing players
             local viewmodels = Workspace:FindFirstChild("Viewmodels")
             if viewmodels then
                 for _, model in pairs(viewmodels:GetChildren()) do
@@ -620,7 +605,6 @@ do
     ESP.SetSkeletonColor = function(color)
         if typeof(color) == "Color3" then
             ESP.Drawing.Skeleton.RGB = color
-            -- Update existing skeleton lines
             for _, skeletonData in pairs(ActiveSkeletons) do
                 if skeletonData and skeletonData.lines then
                     for _, line in ipairs(skeletonData.lines) do
@@ -634,7 +618,6 @@ do
     ESP.SetSkeletonThickness = function(thickness)
         if type(thickness) == "number" and thickness > 0 then
             ESP.Drawing.Skeleton.Thickness = thickness
-            -- Update existing skeleton lines
             for _, skeletonData in pairs(ActiveSkeletons) do
                 if skeletonData and skeletonData.lines then
                     for _, line in ipairs(skeletonData.lines) do
