@@ -162,11 +162,12 @@ do
     function Functions:CleanAllSkeletons()
         for model, skeletonData in pairs(ActiveSkeletons) do
             if skeletonData then
-                for _, line in ipairs(skeletonData.lines) do
-                    if line then
-                        line:Remove()
-                    end
-                end
+for _, line in ipairs(skeletonData.lines) do
+    if line then
+        line.Visible = false
+        line:Remove()
+    end
+end
                 if skeletonData.connection then
                     skeletonData.connection:Disconnect()
                 end
