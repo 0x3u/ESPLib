@@ -596,19 +596,19 @@ local function CreateESP(CharacterModel)
 			Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
 			Box.Size = UDim2.new(0, w, 0, h)
 
-			local full = ESP.Drawing.Boxes.Full.Enabled
-			local filled = ESP.Drawing.Boxes.Filled.Enabled
-			Box.Visible = full
+local full = ESP.Drawing.Boxes.Full.Enabled
+local corner = ESP.Drawing.Boxes.Corner.Enabled
+local filled = ESP.Drawing.Boxes.Filled.Enabled
 
-			if full then
-				if filled then
-					Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
-				else
-					Box.BackgroundTransparency = 1
-				end
-			else
-				Box.BackgroundTransparency = 1
-			end
+Box.Visible = full or (corner and filled)
+
+if filled then
+    Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
+else
+    Box.BackgroundTransparency = 1 
+end
+
+Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
 			local CurrentTick = tick()
 			local DeltaTime = CurrentTick - LastTick
