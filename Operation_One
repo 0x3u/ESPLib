@@ -42,7 +42,7 @@ local ESP = {
 		Boxes = {
 			Animate = false,
 			RotationSpeed = 300,
-			Gradient = true,
+			Gradient = false,
 			GradientRGB1 = Color3.fromRGB(243, 116, 116),
 			GradientRGB2 = Color3.fromRGB(0, 0, 0),
 			GradientFill = true,
@@ -683,17 +683,17 @@ do
 					do
 						Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
 						Box.Size = UDim2.new(0, w, 0, h)
-						Box.Visible = ESP.Drawing.Boxes.Full.Enabled or ESP.Drawing.Boxes.Filled.Enabled
+						-- Box existence depends ONLY on Full
+Box.Visible = ESP.Drawing.Boxes.Full.Enabled
 
-						if ESP.Drawing.Boxes.Filled.Enabled then
-							Box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-							Box.BackgroundTransparency = ESP.Drawing.Boxes.GradientFill
-									and ESP.Drawing.Boxes.Filled.Transparency
-								or 1
-							Box.BorderSizePixel = 1
-						else
-							Box.BackgroundTransparency = 1
-						end
+if ESP.Drawing.Boxes.Full.Enabled then
+    if ESP.Drawing.Boxes.Filled.Enabled then
+        Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
+    else
+        Box.BackgroundTransparency = 1
+    end
+end
+
 
 						local CurrentTick = tick()
 						local DeltaTime = CurrentTick - LastTick
