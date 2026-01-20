@@ -21,9 +21,9 @@ local ESP = {
 			Enabled = false,
 			Thermal = false,
 			FillRGB = Color3.fromRGB(243, 116, 166),
-			Fill_Transparency = 60,
-			OutlineRGB = Color3.fromRGB(220, 70, 140),
-			Outline_Transparency = 0,
+			Fill_Transparency = 50,
+			OutlineRGB = Color3.fromRGB(243, 116, 166),
+			Outline_Transparency = 50,
 			VisibleCheck = false,
 		},
 		Names = {
@@ -60,8 +60,8 @@ local ESP = {
 			Corner = {
 				Enabled = false,
 				RGB = Color3.fromRGB(255, 255, 255),
-				Thickness = 1, -- Added thickness control
-				Length = 8, -- Added length control for corners
+				Thickness = 1,
+				Length = 15,
 			},
 		},
 		Skeleton = {
@@ -371,100 +371,77 @@ do
 
 		ActiveESPs[CharacterModel] = ESPFolder
 
-		local Name = Functions:Create(
-			"TextLabel",
-			{
-				Parent = ESPFolder,
-				Name = "NameLabel",
-				Position = UDim2.new(0.5, 0, 0, -11),
-				Size = UDim2.new(0, 100, 0, 20),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				BackgroundTransparency = 1,
-				TextColor3 = Color3.fromRGB(255, 255, 255),
-				Font = Enum.Font.Code,
-				TextSize = ESP.FontSize,
-				TextStrokeTransparency = 0,
-				TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
-				RichText = true,
-			}
-		)
-		local Weapon = Functions:Create(
-			"TextLabel",
-			{
-				Parent = ESPFolder,
-				Name = "WeaponLabel",
-				Position = UDim2.new(0.5, 0, 0, 0),
-				Size = UDim2.new(0, 100, 0, 20),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				BackgroundTransparency = 1,
-				TextColor3 = Color3.fromRGB(255, 255, 255),
-				Font = Enum.Font.Code,
-				TextSize = ESP.FontSize,
-				TextStrokeTransparency = 0,
-				TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
-				RichText = true,
-			}
-		)
-		local Box = Functions:Create(
-			"Frame",
-			{
-				Parent = ESPFolder,
-				Name = "Box",
-				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				BackgroundTransparency = 0.75,
-				BorderSizePixel = 0,
-			}
-		)
-		local Gradient1 = Functions:Create(
-			"UIGradient",
-			{
-				Parent = Box,
-				Enabled = ESP.Drawing.Boxes.GradientFill,
-				Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientFillRGB1),
-					ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientFillRGB2),
-				}),
-			}
-		)
-		local Outline = Functions:Create(
-			"UIStroke",
-			{
-				Parent = Box,
-				Enabled = ESP.Drawing.Boxes.Gradient,
-				Transparency = 0,
-				Color = Color3.fromRGB(255, 255, 255),
-				LineJoinMode = Enum.LineJoinMode.Miter,
-			}
-		)
-		local Gradient2 = Functions:Create(
-			"UIGradient",
-			{
-				Parent = Outline,
-				Enabled = ESP.Drawing.Boxes.Gradient,
-				Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1),
-					ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2),
-				}),
-			}
-		)
+		local Name = Functions:Create("TextLabel", {
+			Parent = ESPFolder,
+			Name = "NameLabel",
+			Position = UDim2.new(0.5, 0, 0, -11),
+			Size = UDim2.new(0, 100, 0, 20),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			Font = Enum.Font.Code,
+			TextSize = ESP.FontSize,
+			TextStrokeTransparency = 0,
+			TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+			RichText = true,
+		})
+		local Weapon = Functions:Create("TextLabel", {
+			Parent = ESPFolder,
+			Name = "WeaponLabel",
+			Position = UDim2.new(0.5, 0, 0, 0),
+			Size = UDim2.new(0, 100, 0, 20),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			Font = Enum.Font.Code,
+			TextSize = ESP.FontSize,
+			TextStrokeTransparency = 0,
+			TextStrokeColor3 = Color3.fromRGB(0, 0, 0),
+			RichText = true,
+		})
+		local Box = Functions:Create("Frame", {
+			Parent = ESPFolder,
+			Name = "Box",
+			BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+			BackgroundTransparency = 0.75,
+			BorderSizePixel = 0,
+		})
+		local Gradient1 = Functions:Create("UIGradient", {
+			Parent = Box,
+			Enabled = ESP.Drawing.Boxes.GradientFill,
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientFillRGB1),
+				ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientFillRGB2),
+			}),
+		})
+		local Outline = Functions:Create("UIStroke", {
+			Parent = Box,
+			Enabled = ESP.Drawing.Boxes.Gradient,
+			Transparency = 0,
+			Color = Color3.fromRGB(255, 255, 255),
+			LineJoinMode = Enum.LineJoinMode.Miter,
+		})
+		local Gradient2 = Functions:Create("UIGradient", {
+			Parent = Outline,
+			Enabled = ESP.Drawing.Boxes.Gradient,
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1),
+				ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2),
+			}),
+		})
 
-		local Chams = Functions:Create(
-			"Highlight",
-			{
-				Parent = ESPFolder,
-				Name = "Chams",
-				FillTransparency = 1,
-				OutlineTransparency = 0,
-				OutlineColor = Color3.fromRGB(119, 120, 255),
-				DepthMode = "AlwaysOnTop",
-			}
-		)
+		local Chams = Functions:Create("Highlight", {
+			Parent = ESPFolder,
+			Name = "Chams",
+			FillTransparency = 1,
+			OutlineTransparency = 0,
+			OutlineColor = Color3.fromRGB(119, 120, 255),
+			DepthMode = "AlwaysOnTop",
+		})
 
-		-- Create corner frames with proper sizing
 		local cornerThickness = ESP.Drawing.Boxes.Corner.Thickness
 		local cornerLength = ESP.Drawing.Boxes.Corner.Length
 
-		-- Top Left Corner (Horizontal part)
 		local LeftTopHorizontal = Functions:Create("Frame", {
 			Parent = ESPFolder,
 			Name = "LeftTopHorizontal",
@@ -475,7 +452,6 @@ do
 			Position = UDim2.new(0, 0, 0, 0),
 		})
 
-		-- Top Left Corner (Vertical part)
 		local LeftTopVertical = Functions:Create("Frame", {
 			Parent = ESPFolder,
 			Name = "LeftTopVertical",
@@ -486,7 +462,6 @@ do
 			Position = UDim2.new(0, 0, 0, 0),
 		})
 
-		-- Top Right Corner (Horizontal part)
 		local RightTopHorizontal = Functions:Create("Frame", {
 			Parent = ESPFolder,
 			Name = "RightTopHorizontal",
@@ -497,7 +472,6 @@ do
 			Position = UDim2.new(0, 0, 0, 0),
 		})
 
-		-- Top Right Corner (Vertical part)
 		local RightTopVertical = Functions:Create("Frame", {
 			Parent = ESPFolder,
 			Name = "RightTopVertical",
@@ -508,7 +482,6 @@ do
 			Position = UDim2.new(0, 0, 0, 0),
 		})
 
-		-- Bottom Left Corner (Horizontal part)
 		local LeftBottomHorizontal = Functions:Create("Frame", {
 			Parent = ESPFolder,
 			Name = "LeftBottomHorizontal",
@@ -519,7 +492,6 @@ do
 			Position = UDim2.new(0, 0, 0, 0),
 		})
 
-		-- Bottom Left Corner (Vertical part)
 		local LeftBottomVertical = Functions:Create("Frame", {
 			Parent = ESPFolder,
 			Name = "LeftBottomVertical",
@@ -530,7 +502,6 @@ do
 			Position = UDim2.new(0, 0, 0, 0),
 		})
 
-		-- Bottom Right Corner (Horizontal part)
 		local RightBottomHorizontal = Functions:Create("Frame", {
 			Parent = ESPFolder,
 			Name = "RightBottomHorizontal",
@@ -541,7 +512,6 @@ do
 			Position = UDim2.new(0, 0, 0, 0),
 		})
 
-		-- Bottom Right Corner (Vertical part)
 		local RightBottomVertical = Functions:Create("Frame", {
 			Parent = ESPFolder,
 			Name = "RightBottomVertical",
@@ -616,10 +586,9 @@ do
 				if OnScreen and Dist <= ESP.MaxDistance then
 					local Size = torso.Size.Y
 					local scaleFactor = (Size * Cam.ViewportSize.Y) / (Pos.Z * 2)
-					local w, h = 2 * scaleFactor, 4.75 * scaleFactor
+					local w, h = 2.5 * scaleFactor, 4.75 * scaleFactor
 					local verticalOffset = h * 0.175
 
-					-- Calculate dynamic corner length based on box size
 					local dynamicCornerLength = math.min(cornerLength, w * 0.2, h * 0.2)
 
 					if ESP.FadeOut.OnDistance then
@@ -656,7 +625,6 @@ do
 					do
 						local cornerVisible = ESP.Drawing.Boxes.Corner.Enabled
 
-						-- Top Left Corner
 						LeftTopHorizontal.Visible = cornerVisible
 						LeftTopHorizontal.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
 						LeftTopHorizontal.Size = UDim2.new(0, dynamicCornerLength, 0, cornerThickness)
@@ -667,7 +635,6 @@ do
 						LeftTopVertical.Size = UDim2.new(0, cornerThickness, 0, dynamicCornerLength)
 						LeftTopVertical.BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB
 
-						-- Top Right Corner
 						RightTopHorizontal.Visible = cornerVisible
 						RightTopHorizontal.Position =
 							UDim2.new(0, Pos.X + w / 2 - dynamicCornerLength, 0, Pos.Y - h / 2 + verticalOffset)
@@ -680,7 +647,6 @@ do
 						RightTopVertical.Size = UDim2.new(0, cornerThickness, 0, dynamicCornerLength)
 						RightTopVertical.BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB
 
-						-- Bottom Left Corner
 						LeftBottomHorizontal.Visible = cornerVisible
 						LeftBottomHorizontal.Position =
 							UDim2.new(0, Pos.X - w / 2, 0, Pos.Y + h / 2 + verticalOffset - cornerThickness)
@@ -693,7 +659,6 @@ do
 						LeftBottomVertical.Size = UDim2.new(0, cornerThickness, 0, dynamicCornerLength)
 						LeftBottomVertical.BackgroundColor3 = ESP.Drawing.Boxes.Corner.RGB
 
-						-- Bottom Right Corner
 						RightBottomHorizontal.Visible = cornerVisible
 						RightBottomHorizontal.Position = UDim2.new(
 							0,
@@ -718,7 +683,7 @@ do
 					do
 						Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2 + verticalOffset)
 						Box.Size = UDim2.new(0, w, 0, h)
-						Box.Visible = ESP.Drawing.Boxes.Full.Enabled
+						Box.Visible = ESP.Drawing.Boxes.Full.Enabled or ESP.Drawing.Boxes.Filled.Enabled
 
 						if ESP.Drawing.Boxes.Filled.Enabled then
 							Box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
