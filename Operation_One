@@ -600,13 +600,16 @@ local full = ESP.Drawing.Boxes.Full.Enabled
 local corner = ESP.Drawing.Boxes.Corner.Enabled
 local filled = ESP.Drawing.Boxes.Filled.Enabled
 
-Box.Visible = full or (corner and filled)
+Box.Visible = full or (corner and filled) or ESP.Drawing.Boxes.GradientFill
 
-if filled then
+if ESP.Drawing.Boxes.GradientFill then
+    Box.BackgroundTransparency = 0
+elseif filled then
     Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
 else
-    Box.BackgroundTransparency = 1 
+    Box.BackgroundTransparency = 1
 end
+
 
 Outline.Enabled = full and ESP.Drawing.Boxes.Gradient
 
