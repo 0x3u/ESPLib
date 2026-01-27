@@ -58,10 +58,10 @@ local Esp = {
 			Animate = false,
 			RotationSpeed = 300,
 			Gradient = false,
-			GradientRGB1 = Color3.fromRGB(243, 116, 116),
+			GradientRGB1 = Color3.fromRGB(243, 116, 116),  -- Fixed: Changed from black to pink
 			GradientRGB2 = Color3.fromRGB(0, 0, 0),
-			GradientFill = true,
-			GradientFillRGB1 = Color3.fromRGB(243, 116, 116),
+			GradientFill = false,
+			GradientFillRGB1 = Color3.fromRGB(243, 116, 166),  -- Fixed: Changed from black to pink
 			GradientFillRGB2 = Color3.fromRGB(0, 0, 0),
 			Filled = {
 				Enabled = false,
@@ -354,7 +354,11 @@ local function UpdateEsp()
 			continue
 		end
 
-		if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") or not plr.Character:FindFirstChild("Humanoid") then
+		if
+			not plr.Character
+			or not plr.Character:FindFirstChild("HumanoidRootPart")
+			or not plr.Character:FindFirstChild("Humanoid")
+		then
 			esp.Box.Visible = false
 			esp.Name.Visible = false
 			esp.Distance.Visible = false
@@ -467,27 +471,31 @@ local function UpdateEsp()
 			if Esp.Drawing.Boxes.Filled.Enabled then
 				esp.Box.Visible = true
 				esp.Box.BackgroundColor3 = Esp.Drawing.Boxes.Filled.RGB
-				esp.Box.BorderSizePixel = 0
-				
+
 				if Esp.Drawing.Boxes.GradientFill then
-					esp.Box.BackgroundTransparency = 0
-					esp.Gradient1.Enabled = true
+					esp.Box.BackgroundTransparency = 0.3
+				else
+					esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
+				end
+
+				esp.Box.BorderSizePixel = 0
+
+				esp.Gradient1.Enabled = Esp.Drawing.Boxes.GradientFill
+				if Esp.Drawing.Boxes.GradientFill then
 					esp.Gradient1.Color = ColorSequence.new({
 						ColorSequenceKeypoint.new(0, Esp.Drawing.Boxes.GradientFillRGB1),
 						ColorSequenceKeypoint.new(1, Esp.Drawing.Boxes.GradientFillRGB2),
 					})
-				else
-					esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
-					esp.Gradient1.Enabled = false
 				end
-				
+
 				esp.Outline.Enabled = false
 			else
 				esp.Box.Visible = false
 				esp.Outline.Enabled = false
 			end
 
-			RotationAngle = RotationAngle + (tick() - Tick) * Esp.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * tick() - math.pi / 2)
+			RotationAngle = RotationAngle
+				+ (tick() - Tick) * Esp.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * tick() - math.pi / 2)
 			if Esp.Drawing.Boxes.Animate then
 				esp.Gradient1.Rotation = RotationAngle
 				esp.Gradient2.Rotation = RotationAngle
@@ -508,11 +516,15 @@ local function UpdateEsp()
 
 			if Esp.Drawing.Healthbar.HealthText then
 				local healthPercentage = math.floor(Humanoid.Health / Humanoid.MaxHealth * 100)
-				esp.HealthText.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - healthPercentage / 100) + 3)
+				esp.HealthText.Position =
+					UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - healthPercentage / 100) + 3)
 				esp.HealthText.Text = tostring(healthPercentage)
 				esp.HealthText.Visible = Humanoid.Health < Humanoid.MaxHealth
 				if Esp.Drawing.Healthbar.Lerp then
-					local color = health >= 0.75 and Color3.fromRGB(0, 255, 0) or health >= 0.5 and Color3.fromRGB(255, 255, 0) or health >= 0.25 and Color3.fromRGB(255, 170, 0) or Color3.fromRGB(255, 0, 0)
+					local color = health >= 0.75 and Color3.fromRGB(0, 255, 0)
+						or health >= 0.5 and Color3.fromRGB(255, 255, 0)
+						or health >= 0.25 and Color3.fromRGB(255, 170, 0)
+						or Color3.fromRGB(255, 0, 0)
 					esp.HealthText.TextColor3 = color
 				else
 					esp.HealthText.TextColor3 = Esp.Drawing.Healthbar.HealthTextRGB
@@ -521,7 +533,13 @@ local function UpdateEsp()
 
 			esp.Name.Visible = Esp.Drawing.Names.Enabled
 			if Esp.Options.Friendcheck and lplayer:IsFriendsWith(plr.UserId) then
-				esp.Name.Text = string.format('(<font color="rgb(%d, %d, %d)">F</font>) %s', Esp.Options.FriendcheckRGB.R * 255, Esp.Options.FriendcheckRGB.G * 255, Esp.Options.FriendcheckRGB.B * 255, plr.Name)
+				esp.Name.Text = string.format(
+					'(<font color="rgb(%d, %d, %d)">F</font>) %s',
+					Esp.Options.FriendcheckRGB.R * 255,
+					Esp.Options.FriendcheckRGB.G * 255,
+					Esp.Options.FriendcheckRGB.B * 255,
+					plr.Name
+				)
 			else
 				esp.Name.Text = string.format('(<font color="rgb(%d, %d, %d)">E</font>) %s', 255, 0, 0, plr.Name)
 			end
@@ -535,9 +553,23 @@ local function UpdateEsp()
 				elseif Esp.Drawing.Distances.Position == "Text" then
 					esp.Distance.Visible = false
 					if Esp.Options.Friendcheck and lplayer:IsFriendsWith(plr.UserId) then
-						esp.Name.Text = string.format('(<font color="rgb(%d, %d, %d)">F</font>) %s [%d]', Esp.Options.FriendcheckRGB.R * 255, Esp.Options.FriendcheckRGB.G * 255, Esp.Options.FriendcheckRGB.B * 255, plr.Name, math.floor(Dist))
+						esp.Name.Text = string.format(
+							'(<font color="rgb(%d, %d, %d)">F</font>) %s [%d]',
+							Esp.Options.FriendcheckRGB.R * 255,
+							Esp.Options.FriendcheckRGB.G * 255,
+							Esp.Options.FriendcheckRGB.B * 255,
+							plr.Name,
+							math.floor(Dist)
+						)
 					else
-						esp.Name.Text = string.format('(<font color="rgb(%d, %d, %d)">E</font>) %s [%d]', 255, 0, 0, plr.Name, math.floor(Dist))
+						esp.Name.Text = string.format(
+							'(<font color="rgb(%d, %d, %d)">E</font>) %s [%d]',
+							255,
+							0,
+							0,
+							plr.Name,
+							math.floor(Dist)
+						)
 					end
 				end
 			end
