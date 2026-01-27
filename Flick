@@ -159,7 +159,7 @@ local function CreateEsp(plr)
 	local Box = Functions:Create("Frame", {
 		Parent = holder,
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-		BackgroundTransparency = 1,
+		BackgroundTransparency = 0.75,
 		BorderSizePixel = 0,
 	})
 
@@ -177,7 +177,6 @@ local function CreateEsp(plr)
 		Enabled = false,
 		Transparency = 0,
 		Color = Color3.fromRGB(255, 255, 255),
-		Thickness = 1,
 		LineJoinMode = Enum.LineJoinMode.Miter,
 	})
 
@@ -465,29 +464,23 @@ local function UpdateEsp()
 			esp.Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
 			esp.Box.Size = UDim2.new(0, w, 0, h)
 
+			-- KEY FIX: Simplified the filled box logic like the working code
+			esp.Box.Visible = Esp.Drawing.Boxes.Full.Enabled
+
 			if Esp.Drawing.Boxes.Filled.Enabled then
-				esp.Box.Visible = true
-				esp.Box.BackgroundColor3 = Esp.Drawing.Boxes.Filled.RGB
-				esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
-				esp.Box.BorderSizePixel = 0
-
-				esp.Gradient1.Enabled = Esp.Drawing.Boxes.GradientFill
+				esp.Box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				if Esp.Drawing.Boxes.GradientFill then
-					esp.Gradient1.Color = ColorSequence.new({
-						ColorSequenceKeypoint.new(0, Esp.Drawing.Boxes.GradientFillRGB1),
-						ColorSequenceKeypoint.new(1, Esp.Drawing.Boxes.GradientFillRGB2),
-					})
+					esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
+				else
+					esp.Box.BackgroundTransparency = 1
 				end
-
-				esp.Outline.Enabled = false
+				esp.Box.BorderSizePixel = 1
 			else
-				esp.Box.Visible = false
-				esp.Outline.Enabled = false
+				esp.Box.BackgroundTransparency = 1
 			end
 
 			RotationAngle = RotationAngle + (tick() - Tick) * Esp.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * tick() - math.pi / 2)
-			
-			if Esp.Drawing.Boxes.Gradient or Esp.Drawing.Boxes.GradientFill then
+			if Esp.Drawing.Boxes.Animate then
 				esp.Gradient1.Rotation = RotationAngle
 				esp.Gradient2.Rotation = RotationAngle
 			else
@@ -595,7 +588,7 @@ end)
 
 Players.PlayerRemoving:Connect(function(player)
 	CleanupEsp(player)
-end)
+end
 
 RunService.RenderStepped:Connect(UpdateEsp)
 
