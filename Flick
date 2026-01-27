@@ -424,36 +424,6 @@ local function UpdateEsp()
 				esp.Chams.DepthMode = "AlwaysOnTop"
 			end
 
-			-- Set box position and size (always needed for filled box)
-			esp.Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
-			esp.Box.Size = UDim2.new(0, w, 0, h)
-
-			-- Handle Filled Box (only when Filled.Enabled is true)
-			if Esp.Drawing.Boxes.Filled.Enabled then
-				-- Show filled box
-				esp.Box.Visible = true
-				esp.Box.BackgroundColor3 = Esp.Drawing.Boxes.Filled.RGB
-				esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
-				esp.Box.BorderSizePixel = 0
-
-				-- Handle gradient for filled box
-				esp.Gradient1.Enabled = Esp.Drawing.Boxes.GradientFill
-				if Esp.Drawing.Boxes.GradientFill then
-					esp.Gradient1.Color = ColorSequence.new({
-						ColorSequenceKeypoint.new(0, Esp.Drawing.Boxes.GradientFillRGB1),
-						ColorSequenceKeypoint.new(1, Esp.Drawing.Boxes.GradientFillRGB2),
-					})
-				end
-
-				-- Outline should be hidden for filled box
-				esp.Outline.Enabled = false
-			else
-				-- Hide filled box
-				esp.Box.Visible = false
-				esp.Outline.Enabled = false
-			end
-
-			-- Corner ESP (always independent)
 			esp.LeftTop.Visible = Esp.Drawing.Boxes.Corner.Enabled
 			esp.LeftTop.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
 			esp.LeftTop.Size = UDim2.new(0, w / 5, 0, 1)
@@ -492,9 +462,32 @@ local function UpdateEsp()
 			esp.BottomRightDown.Size = UDim2.new(0, w / 5, 0, 1)
 			esp.BottomRightDown.AnchorPoint = Vector2.new(1, 1)
 
-			-- Handle gradient rotation animation
+			esp.Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
+			esp.Box.Size = UDim2.new(0, w, 0, h)
+
+			if Esp.Drawing.Boxes.Filled.Enabled then
+				esp.Box.Visible = true
+				esp.Box.BackgroundColor3 = Esp.Drawing.Boxes.Filled.RGB
+				esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
+				esp.Box.BorderSizePixel = 0
+
+				esp.Gradient1.Enabled = Esp.Drawing.Boxes.GradientFill
+				if Esp.Drawing.Boxes.GradientFill then
+					esp.Gradient1.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0, Esp.Drawing.Boxes.GradientFillRGB1),
+						ColorSequenceKeypoint.new(1, Esp.Drawing.Boxes.GradientFillRGB2),
+					})
+				end
+
+				esp.Outline.Enabled = false
+			else
+				esp.Box.Visible = false
+				esp.Outline.Enabled = false
+			end
+
 			RotationAngle = RotationAngle + (tick() - Tick) * Esp.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * tick() - math.pi / 2)
-			if Esp.Drawing.Boxes.Animate then
+			
+			if Esp.Drawing.Boxes.Gradient or Esp.Drawing.Boxes.GradientFill then
 				esp.Gradient1.Rotation = RotationAngle
 				esp.Gradient2.Rotation = RotationAngle
 			else
@@ -503,7 +496,6 @@ local function UpdateEsp()
 			end
 			Tick = tick()
 
-			-- Healthbar
 			local health = Humanoid.Health / Humanoid.MaxHealth
 			esp.Healthbar.Visible = Esp.Drawing.Healthbar.Enabled
 			esp.Healthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - health))
@@ -526,7 +518,6 @@ local function UpdateEsp()
 				end
 			end
 
-			-- Name Esp
 			esp.Name.Visible = Esp.Drawing.Names.Enabled
 			if Esp.Options.Friendcheck and lplayer:IsFriendsWith(plr.UserId) then
 				esp.Name.Text = string.format('(<font color="rgb(%d, %d, %d)">F</font>) %s', Esp.Options.FriendcheckRGB.R * 255, Esp.Options.FriendcheckRGB.G * 255, Esp.Options.FriendcheckRGB.B * 255, plr.Name)
@@ -535,7 +526,6 @@ local function UpdateEsp()
 			end
 			esp.Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9)
 
-			-- Distance Esp
 			if Esp.Drawing.Distances.Enabled then
 				if Esp.Drawing.Distances.Position == "Bottom" then
 					esp.Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
