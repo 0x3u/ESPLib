@@ -58,10 +58,10 @@ local Esp = {
 			Animate = false,
 			RotationSpeed = 300,
 			Gradient = false,
-			GradientRGB1 = Color3.fromRGB(243, 116, 116),  -- Fixed: Changed from black to pink
+			GradientRGB1 = Color3.fromRGB(243, 116, 116),
 			GradientRGB2 = Color3.fromRGB(0, 0, 0),
 			GradientFill = false,
-			GradientFillRGB1 = Color3.fromRGB(243, 116, 166),  -- Fixed: Changed from black to pink
+			GradientFillRGB1 = Color3.fromRGB(243, 116, 116),
 			GradientFillRGB2 = Color3.fromRGB(0, 0, 0),
 			Filled = {
 				Enabled = false,
@@ -158,8 +158,8 @@ local function CreateEsp(plr)
 
 	local Box = Functions:Create("Frame", {
 		Parent = holder,
-		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-		BackgroundTransparency = 0.75,
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 	})
 
@@ -470,22 +470,20 @@ local function UpdateEsp()
 
 			if Esp.Drawing.Boxes.Filled.Enabled then
 				esp.Box.Visible = true
-				esp.Box.BackgroundColor3 = Esp.Drawing.Boxes.Filled.RGB
-
-				if Esp.Drawing.Boxes.GradientFill then
-					esp.Box.BackgroundTransparency = 0.3
-				else
-					esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
-				end
-
 				esp.Box.BorderSizePixel = 0
 
-				esp.Gradient1.Enabled = Esp.Drawing.Boxes.GradientFill
 				if Esp.Drawing.Boxes.GradientFill then
+					esp.Box.BackgroundTransparency = 0.7
+					esp.Box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+					esp.Gradient1.Enabled = true
 					esp.Gradient1.Color = ColorSequence.new({
 						ColorSequenceKeypoint.new(0, Esp.Drawing.Boxes.GradientFillRGB1),
 						ColorSequenceKeypoint.new(1, Esp.Drawing.Boxes.GradientFillRGB2),
 					})
+				else
+					esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
+					esp.Box.BackgroundColor3 = Esp.Drawing.Boxes.Filled.RGB
+					esp.Gradient1.Enabled = false
 				end
 
 				esp.Outline.Enabled = false
