@@ -60,7 +60,7 @@ local Esp = {
 			Gradient = false,
 			GradientRGB1 = Color3.fromRGB(243, 116, 116),
 			GradientRGB2 = Color3.fromRGB(0, 0, 0),
-			GradientFill = false,
+			GradientFill = true,
 			GradientFillRGB1 = Color3.fromRGB(243, 116, 116),
 			GradientFillRGB2 = Color3.fromRGB(0, 0, 0),
 			Filled = {
@@ -467,21 +467,18 @@ local function UpdateEsp()
 			if Esp.Drawing.Boxes.Filled.Enabled then
 				esp.Box.Visible = true
 				esp.Box.BackgroundColor3 = Esp.Drawing.Boxes.Filled.RGB
-				
-				if Esp.Drawing.Boxes.GradientFill then
-					esp.Box.BackgroundTransparency = 0.3
-				else
-					esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
-				end
-				
 				esp.Box.BorderSizePixel = 0
-
-				esp.Gradient1.Enabled = Esp.Drawing.Boxes.GradientFill
+				
 				if Esp.Drawing.Boxes.GradientFill then
+					esp.Box.BackgroundTransparency = 0
+					esp.Gradient1.Enabled = true
 					esp.Gradient1.Color = ColorSequence.new({
 						ColorSequenceKeypoint.new(0, Esp.Drawing.Boxes.GradientFillRGB1),
 						ColorSequenceKeypoint.new(1, Esp.Drawing.Boxes.GradientFillRGB2),
 					})
+				else
+					esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
+					esp.Gradient1.Enabled = false
 				end
 				
 				esp.Outline.Enabled = false
