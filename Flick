@@ -159,7 +159,7 @@ local function CreateESP(plr)
 	local Box = Functions:Create("Frame", {
 		Parent = holder,
 		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-		BackgroundTransparency = 0.75,
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 	})
 	
@@ -177,6 +177,7 @@ local function CreateESP(plr)
 		Enabled = false,
 		Transparency = 0,
 		Color = Color3.fromRGB(255, 255, 255),
+		Thickness = 1,
 		LineJoinMode = Enum.LineJoinMode.Miter,
 	})
 	
@@ -421,6 +422,7 @@ local function UpdateESP()
 				esp.Chams.DepthMode = "AlwaysOnTop"
 			end
 			
+			-- Corner ESP
 			esp.LeftTop.Visible = ESP.Drawing.Boxes.Corner.Enabled
 			esp.LeftTop.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
 			esp.LeftTop.Size = UDim2.new(0, w / 5, 0, 1)
@@ -459,11 +461,13 @@ local function UpdateESP()
 			esp.BottomRightDown.Size = UDim2.new(0, w / 5, 0, 1)
 			esp.BottomRightDown.AnchorPoint = Vector2.new(1, 1)
 			
+			-- Set box position and size
 			esp.Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
 			esp.Box.Size = UDim2.new(0, w, 0, h)
 			
 			-- Handle Box Visibility and Appearance
-			if ESP.Drawing.Boxes.Filled.Enabled then
+			if ESP.Drawing.Boxes.Filled.Enabled and ESP.Drawing.Boxes.Full.Enabled then
+				-- Show filled box
 				esp.Box.Visible = true
 				esp.Box.BackgroundColor3 = ESP.Drawing.Boxes.Filled.RGB
 				esp.Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
@@ -480,29 +484,32 @@ local function UpdateESP()
 				
 				-- Outline should be hidden for filled box
 				esp.Outline.Enabled = false
-			else
-				-- Only show box outline if Full.Enabled is true
-				esp.Box.Visible = ESP.Drawing.Boxes.Full.Enabled
+			elseif ESP.Drawing.Boxes.Full.Enabled then
+				-- Show box outline (not filled)
+				esp.Box.Visible = true
 				esp.Box.BackgroundTransparency = 1
 				esp.Box.BorderSizePixel = 0
 				
 				-- Handle outline
-				esp.Outline.Enabled = ESP.Drawing.Boxes.Full.Enabled
-				if ESP.Drawing.Boxes.Full.Enabled then
-					esp.Outline.Thickness = 1
-					esp.Outline.Color = ESP.Drawing.Boxes.Full.RGB
-					
-					-- Handle outline gradient
-					esp.Gradient2.Enabled = ESP.Drawing.Boxes.Gradient
-					if ESP.Drawing.Boxes.Gradient then
-						esp.Gradient2.Color = ColorSequence.new({
-							ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1),
-							ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2),
-						})
-					end
+				esp.Outline.Enabled = true
+				esp.Outline.Thickness = 1
+				esp.Outline.Color = ESP.Drawing.Boxes.Full.RGB
+				
+				-- Handle outline gradient
+				esp.Gradient2.Enabled = ESP.Drawing.Boxes.Gradient
+				if ESP.Drawing.Boxes.Gradient then
+					esp.Gradient2.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1),
+						ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2),
+					})
 				end
+			else
+				-- Hide box completely
+				esp.Box.Visible = false
+				esp.Outline.Enabled = false
 			end
 			
+			-- Handle gradient rotation animation
 			RotationAngle = RotationAngle + (tick() - Tick) * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * tick() - math.pi / 2)
 			if ESP.Drawing.Boxes.Animate then
 				esp.Gradient1.Rotation = RotationAngle
@@ -513,6 +520,7 @@ local function UpdateESP()
 			end
 			Tick = tick()
 			
+			-- Healthbar
 			local health = Humanoid.Health / Humanoid.MaxHealth
 			esp.Healthbar.Visible = ESP.Drawing.Healthbar.Enabled
 			esp.Healthbar.Position = UDim2.new(0, Pos.X - w / 2 - 6, 0, Pos.Y - h / 2 + h * (1 - health))
@@ -535,6 +543,7 @@ local function UpdateESP()
 				end
 			end
 			
+			-- Name ESP
 			esp.Name.Visible = ESP.Drawing.Names.Enabled
 			if ESP.Options.Friendcheck and lplayer:IsFriendsWith(plr.UserId) then
 				esp.Name.Text = string.format('(<font color="rgb(%d, %d, %d)">F</font>) %s', ESP.Options.FriendcheckRGB.R * 255, ESP.Options.FriendcheckRGB.G * 255, ESP.Options.FriendcheckRGB.B * 255, plr.Name)
@@ -543,6 +552,7 @@ local function UpdateESP()
 			end
 			esp.Name.Position = UDim2.new(0, Pos.X, 0, Pos.Y - h / 2 - 9)
 			
+			-- Distance ESP
 			if ESP.Drawing.Distances.Enabled then
 				if ESP.Drawing.Distances.Position == "Bottom" then
 					esp.Distance.Position = UDim2.new(0, Pos.X, 0, Pos.Y + h / 2 + 7)
@@ -558,6 +568,7 @@ local function UpdateESP()
 				end
 			end
 		else
+			-- Player is off-screen or too far
 			esp.Box.Visible = false
 			esp.Name.Visible = false
 			esp.Distance.Visible = false
