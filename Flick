@@ -61,12 +61,12 @@ local Esp = {
 			GradientRGB1 = Color3.fromRGB(243, 116, 116),
 			GradientRGB2 = Color3.fromRGB(0, 0, 0),
 			GradientFill = false,
-			GradientFillRGB1 = Color3.fromRGB(255, 0, 0),  -- Changed to red for visibility
-			GradientFillRGB2 = Color3.fromRGB(0, 0, 255),  -- Changed to blue for visibility
+			GradientFillRGB1 = Color3.fromRGB(243, 116, 116),
+			GradientFillRGB2 = Color3.fromRGB(0, 0, 0),
 			Filled = {
 				Enabled = false,
-				Transparency = 0.5,  -- Changed to 0.5 (more opaque)
-				RGB = Color3.fromRGB(255, 255, 255),  -- Changed to white
+				Transparency = 0.75,
+				RGB = Color3.fromRGB(0, 0, 0),
 			},
 			Full = {
 				Enabled = false,
@@ -158,8 +158,8 @@ local function CreateEsp(plr)
 
 	local Box = Functions:Create("Frame", {
 		Parent = holder,
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),  -- White
-		BackgroundTransparency = 1,  -- Fully transparent by default
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+		BackgroundTransparency = 0.75,
 		BorderSizePixel = 0,
 	})
 
@@ -423,7 +423,6 @@ local function UpdateEsp()
 				esp.Chams.DepthMode = "AlwaysOnTop"
 			end
 
-			-- CORNER ESP (Independent)
 			esp.LeftTop.Visible = Esp.Drawing.Boxes.Corner.Enabled
 			esp.LeftTop.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
 			esp.LeftTop.Size = UDim2.new(0, w / 5, 0, 1)
@@ -462,7 +461,6 @@ local function UpdateEsp()
 			esp.BottomRightDown.Size = UDim2.new(0, w / 5, 0, 1)
 			esp.BottomRightDown.AnchorPoint = Vector2.new(1, 1)
 
-			-- FILLED BOX (Independent from corners)
 			esp.Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
 			esp.Box.Size = UDim2.new(0, w, 0, h)
 
@@ -472,25 +470,20 @@ local function UpdateEsp()
 				esp.Box.BackgroundTransparency = Esp.Drawing.Boxes.Filled.Transparency
 				esp.Box.BorderSizePixel = 0
 
-				-- Handle gradient for filled box
 				esp.Gradient1.Enabled = Esp.Drawing.Boxes.GradientFill
 				if Esp.Drawing.Boxes.GradientFill then
 					esp.Gradient1.Color = ColorSequence.new({
 						ColorSequenceKeypoint.new(0, Esp.Drawing.Boxes.GradientFillRGB1),
 						ColorSequenceKeypoint.new(1, Esp.Drawing.Boxes.GradientFillRGB2),
 					})
-				else
-					esp.Gradient1.Enabled = false
 				end
-
-				-- Outline should be hidden for filled box
+				
 				esp.Outline.Enabled = false
 			else
 				esp.Box.Visible = false
 				esp.Outline.Enabled = false
 			end
 
-			-- Handle gradient rotation animation
 			RotationAngle = RotationAngle + (tick() - Tick) * Esp.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * tick() - math.pi / 2)
 			if Esp.Drawing.Boxes.Animate then
 				esp.Gradient1.Rotation = RotationAngle
@@ -600,7 +593,7 @@ end)
 
 Players.PlayerRemoving:Connect(function(player)
 	CleanupEsp(player)
-end)
+end
 
 RunService.RenderStepped:Connect(UpdateEsp)
 
