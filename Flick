@@ -165,7 +165,7 @@ local function CreateESP(plr)
 	
 	local Gradient1 = Functions:Create("UIGradient", {
 		Parent = Box,
-		Enabled = ESP.Drawing.Boxes.GradientFill,
+		Enabled = false,
 		Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientFillRGB1),
 			ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientFillRGB2),
@@ -174,7 +174,7 @@ local function CreateESP(plr)
 	
 	local Outline = Functions:Create("UIStroke", {
 		Parent = Box,
-		Enabled = ESP.Drawing.Boxes.Gradient,
+		Enabled = false,
 		Transparency = 0,
 		Color = Color3.fromRGB(255, 255, 255),
 		LineJoinMode = Enum.LineJoinMode.Miter,
@@ -182,7 +182,7 @@ local function CreateESP(plr)
 	
 	local Gradient2 = Functions:Create("UIGradient", {
 		Parent = Outline,
-		Enabled = ESP.Drawing.Boxes.Gradient,
+		Enabled = false,
 		Color = ColorSequence.new({
 			ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1),
 			ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2),
@@ -461,18 +461,46 @@ local function UpdateESP()
 			
 			esp.Box.Position = UDim2.new(0, Pos.X - w / 2, 0, Pos.Y - h / 2)
 			esp.Box.Size = UDim2.new(0, w, 0, h)
-			esp.Box.Visible = ESP.Drawing.Boxes.Full.Enabled
 			
+			-- Handle Box Visibility and Appearance
 			if ESP.Drawing.Boxes.Filled.Enabled then
-				esp.Box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				esp.Box.Visible = true
+				esp.Box.BackgroundColor3 = ESP.Drawing.Boxes.Filled.RGB
+				esp.Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
+				esp.Box.BorderSizePixel = 0
+				
+				-- Handle gradient for filled box
+				esp.Gradient1.Enabled = ESP.Drawing.Boxes.GradientFill
 				if ESP.Drawing.Boxes.GradientFill then
-					esp.Box.BackgroundTransparency = ESP.Drawing.Boxes.Filled.Transparency
-				else
-					esp.Box.BackgroundTransparency = 1
+					esp.Gradient1.Color = ColorSequence.new({
+						ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientFillRGB1),
+						ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientFillRGB2),
+					})
 				end
-				esp.Box.BorderSizePixel = 1
+				
+				-- Outline should be hidden for filled box
+				esp.Outline.Enabled = false
 			else
+				-- Only show box outline if Full.Enabled is true
+				esp.Box.Visible = ESP.Drawing.Boxes.Full.Enabled
 				esp.Box.BackgroundTransparency = 1
+				esp.Box.BorderSizePixel = 0
+				
+				-- Handle outline
+				esp.Outline.Enabled = ESP.Drawing.Boxes.Full.Enabled
+				if ESP.Drawing.Boxes.Full.Enabled then
+					esp.Outline.Thickness = 1
+					esp.Outline.Color = ESP.Drawing.Boxes.Full.RGB
+					
+					-- Handle outline gradient
+					esp.Gradient2.Enabled = ESP.Drawing.Boxes.Gradient
+					if ESP.Drawing.Boxes.Gradient then
+						esp.Gradient2.Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0, ESP.Drawing.Boxes.GradientRGB1),
+							ColorSequenceKeypoint.new(1, ESP.Drawing.Boxes.GradientRGB2),
+						})
+					end
+				end
 			end
 			
 			RotationAngle = RotationAngle + (tick() - Tick) * ESP.Drawing.Boxes.RotationSpeed * math.cos(math.pi / 4 * tick() - math.pi / 2)
