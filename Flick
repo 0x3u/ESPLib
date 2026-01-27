@@ -600,7 +600,7 @@ end)
 
 Players.PlayerRemoving:Connect(function(player)
 	CleanupEsp(player)
-end
+end)
 
 RunService.RenderStepped:Connect(UpdateEsp)
 
